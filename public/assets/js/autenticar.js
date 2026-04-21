@@ -1,0 +1,53 @@
+// JavaScript Document
+
+var homeURL;
+
+function InitializeValues(home) {
+	homeURL = home;
+}
+
+var autenticando = false;
+
+function Autenticar() {
+	try {
+		if(!autenticando) {
+			autenticando = true;
+			$.ajax({
+					url: `${homeURL}/api/auth/login`,
+					type: 'post',
+					data: {
+						usuario: $('#field-usuario').val(),
+						password: $('#field-password').val(),
+						keep_me_logged_in: $('#chk-remember').is(':checked') ? 1 : 0
+					},
+					success: function(data) {
+						console.log(data);
+						autenticando = false;
+						var returnedValue = typeof data === 'string' ? JSON.parse(data) : data;
+					
+						if(returnedValue.status == 'OK') {
+							window.location.href = `${homeURL}`;
+						} else if(returnedValue.status == 'ERROR_AUTENTICACION') {
+							ShowSweetAlert('error', '¡Error en Autenticación!', 'Usuario o contraseña incorrectas, revise los datos y vuelva a intentarlo', 'Entendido');
+						} else if(returnedValue.status == 'FAIL_PENDING_ACTIVATION') {
+							ShowSweetAlert('error', '¡Sin Activar!', 'No se ha activado la cuenta, revise su correo y siga las instrucciones de activación.', 'Entendido');
+						} else if(returnedValue.status == 'FAIL_NOT_ACTIVE') {
+							ShowSweetAlert('error', '¡Cuenta Deshabilitada!', 'La cuenta esta deshabilitada.', 'Entendido');
+						} else
+							ShowSweetAlert('error', '¡Ocurrio un Error!', 'Ocurrio un error al intentar realizar la autenticacion.', 'Entendido');	
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+						console.log('STATUS:', textStatus);
+						console.log('ERROR:', errorThrown);
+						console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
+
+						alert(XMLHttpRequest.responseText);
+						// ShowToastMessage(errorThrown + ' - ' + textStatus, 'error');
+						autenticando = false;
+					}  
+			});
+		}
+	} catch(E) {
+		alert(E.message);
+	}
+}

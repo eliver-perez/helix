@@ -1,0 +1,20 @@
+RewriteEngine On
+
+# 1. Si existe archivo o carpeta → servir normal
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 2. /api va a api.php
+RewriteRule ^api(/.*)?$ api.php [QSA,L]
+
+# 3. staff/ → staff/index.php
+RewriteRule ^([^/]+)/$ $1/index.php [NC,L]
+
+# 4. staff → staff.php
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
+
+# 5. Quitar slash final
+RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+ErrorDocument 404 /helix/public/404.html
