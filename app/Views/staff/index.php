@@ -22,20 +22,23 @@
             <div id="as-today" role="tabpanel" data-te-tab-active class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block">
                 <table class="min-w-full text-sm font-light text-left whitespace-nowrap" id="table-staff">
                     <thead>
-                    <tr>
-                        <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-start text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden rounded-s-[4px]">
-                            EMPLEADO</th>
-                        <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
-                            PUESTO</th>
-                        <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
-                            FECHA NACIMIENTO</th>
-                        <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
-                            TEL&Eacute;FONO</th>
-                        <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-end text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden rounded-e-[4px]">
-                            ACCESO</th>
-                    </tr>
+                        <tr>
+                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-start text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden rounded-s-[4px]">
+                                EMPLEADO</th>
+                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                DOMICILIO</th>
+                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                PUESTO</th>
+                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                FECHA NACIMIENTO</th>
+                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                TEL&Eacute;FONO</th>
+                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-end text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden rounded-e-[4px]">
+                                ACCESO</th>
+                        </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-box-dark">
+                        
                     </tbody>
                 </table>
             </div>
@@ -46,4 +49,8 @@
 
 </div>
 
-<script src="<?= asset('js/staff.js'); ?>"></script>
+<script src="<?= asset('js/staff/index.js'); ?>"></script>
+
+<script>
+    var currentLink = '<?= base_url('staff'); ?>';
+</script>

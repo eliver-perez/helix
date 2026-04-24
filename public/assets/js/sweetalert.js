@@ -1,7 +1,5 @@
 // JavaScript Document
 
-
-		
 		function ShowSweetAlert(type, title, message, confirmButton) {
 			Swal.fire({
 				title: title,
@@ -10,6 +8,18 @@
 				padding: '2em',
 				confirmButtonText: confirmButton
 			});
+		}
+		
+		function ShowSweetAlertConfirmCallback(type, title, message, confirmButton, callback) {
+			Swal.fire({
+				title: title,
+				text: message,
+				icon: type,
+				padding: '2em',
+				confirmButtonText: confirmButton,
+				allowOutsideClick: false,
+  				allowEscapeKey: false,
+			}).then(callback);
 		}
 		
 		function ShowToastMessage(message, type) {

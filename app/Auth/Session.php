@@ -37,7 +37,6 @@ class Session
         $_SESSION['HELIX_ERP_LAST_ACTIVITY'] = time();
 
         if (!$this->validateToken()) {
-            die('destroy session');
             $this->destroySession();
         }
 

@@ -1,0 +1,195 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Core;
+
+use InvalidArgumentException;
+
+abstract class Service
+{
+    protected function normalizeRequiredText(mixed $value, string $message): string
+    {
+        $text = trim((string) ($value ?? ''));
+
+        if ($text === '') {
+            throw new InvalidArgumentException($message);
+        }
+
+        return $text;
+    }
+
+    protected function normalizeOptionalText(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $text = trim((string) $value);
+
+        return $text === '' ? null : $text;
+    }
+
+    protected function normalizeRequiredInt(mixed $value, string $message, bool $allowZero = false): int
+    {
+        if ($value === null || $value === '') {
+            throw new InvalidArgumentException($message);
+        }
+
+        if (!is_numeric($value)) {
+            throw new InvalidArgumentException($message);
+        }
+
+        $intValue = (int) $value;
+
+        if($allowZero) {
+            if ($intValue < 0) {
+                throw new InvalidArgumentException($message);
+            }
+        } else {
+            if ($intValue <= 0) {
+                throw new InvalidArgumentException($message);
+            }
+        }
+
+        return $intValue;
+    }
+
+    protected function normalizeOptionalInt(mixed $value, bool $allowZero = false): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        $intValue = (int) $value;
+
+        if($allowZero) {
+            if ($intValue < 0) {
+                return null;
+            }
+        } else {
+            if ($intValue <= 0) {
+                return null;
+            }
+        }
+
+        return $intValue;
+    }
+
+    protected function normalizeRequiredFloat(mixed $value, string $message, bool $allowZero = false): float
+    {
+        if ($value === null || $value === '') {
+            throw new InvalidArgumentException($message);
+        }
+
+        if (!is_numeric($value)) {
+            throw new InvalidArgumentException('Debe ser numérico.');
+        }
+
+        $floatVal = (float) $value;
+
+        if($allowZero) {
+            if ($floatVal < 0) {
+                throw new InvalidArgumentException($message);
+            }
+        } else {
+            if ($floatVal <= 0) {
+                throw new InvalidArgumentException($message);
+            }
+        }
+
+        return $floatVal;
+    }
+
+    protected function normalizeOptionalFloat(mixed $value, bool $allowZero = false): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        $floatVal = (float) $value;
+
+        if($allowZero) {
+            if ($floatVal < 0) {
+                return null;
+            }
+        } else {
+            if ($floatVal <= 0) {
+                return null;
+            }
+        }
+
+        return $floatVal;
+    }
+
+    protected function normalizeBoolToInt(mixed $value): int
+    {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        if (is_numeric($value)) {
+            return ((int) $value) === 1 ? 1 : 0;
+        }
+
+        $text = strtolower(trim((string) $value));
+
+        return in_array($text, ['1', 'true', 'on', 'yes'], true) ? 1 : 0;
+    }
+
+    protected function formatDateToSQL(string $date, string $message = '', bool $optional = true) : ?string {
+        if($date === null || $date === '') {
+            if($optional)
+                return null;
+            else
+                throw new InvalidArgumentException($message);
+        }
+
+        $aux = explode('/', $date);
+        
+        if(sizeof($aux) != 3) {
+            if($optional)
+                return null;
+            else
+                throw new InvalidArgumentException($message);
+        }
+
+        return $aux[2] . '-' .
+                $aux[1] . '-' .
+                $aux[0];
+    }
+
+    protected function generateUuidBinary(): string {
+        $data = random_bytes(16);
+
+        $data[6] = chr((ord($data[6]) & 0x0f) | 0x40); // version 4
+        $data[8] = chr((ord($data[8]) & 0x3f) | 0x80); // variant RFC 4122
+
+        return $data;
+    }
+
+    protected static function uuidBinaryToString(string $binary): string {
+        $hex = bin2hex($binary);
+
+        return sprintf(
+            '%s-%s-%s-%s-%s',
+            substr($hex, 0, 8),
+            substr($hex, 8, 4),
+            substr($hex, 12, 4),
+            substr($hex, 16, 4),
+            substr($hex, 20, 12)
+        );
+    }
+
+    protected static function uuidStringToBinary(string $uuid): string {
+        return hex2bin(str_replace('-', '', $uuid));
+    }
+}

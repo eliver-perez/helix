@@ -48,6 +48,17 @@ class Request
         return $this->queryParams[$key] ?? $default;
     }
 
+    public function queryInt(string $key, ?int $default = null): ?int
+    {
+        $value = $this->query($key);
+
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        return (int) $value;
+    }
+
     public function input(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {

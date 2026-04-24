@@ -38,6 +38,8 @@ CREATE TABLE ajustes (
 
 CREATE INDEX idx_ajustes_categoria ON ajustes(categoria);
 
+INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('codigo_paciente', 'Codigo para la clave de pacientes.', 'PE', 'PE', 1, 4, NOW());
+INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('codigo_cliente', 'Codigo para la clave de clientes.', 'CE', 'CE', 1, 4, NOW());
 INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('agenda_intervalo_minutos', 'Intervalo de tiempo en minutos para busqueda de bloques de citas', '15', '15', 2, 1, NOW());
 
 CREATE TABLE paises (
@@ -189,7 +191,7 @@ CREATE TABLE personal (
     email                           VARCHAR(255) DEFAULT NULL,
     curp                            VARCHAR(20) DEFAULT NULL,
     telefono                        VARCHAR(40) DEFAULT NULL,
-    celular                         VARCHAR(40) DEFAULT NULL,
+    movil                         VARCHAR(40) DEFAULT NULL,
     genero                          VARCHAR(1) NOT NULL,
     puesto                          SMALLINT NOT NULL,
     estatus                         SMALLINT NOT NULL,
@@ -204,26 +206,30 @@ CREATE TABLE personal (
 INSERT INTO personal(uuid, nombre, paterno, puesto, estatus, genero, f_registro) VALUES(10, 'Juan', 'Perez', 4, 1, 'H', NOW()),
                                                                                         (20, 'Eliver', 'Perez', 4, 1, 'H', NOW());
 
-CREATE TABLE personal_medicos (
-    id                              INT NOT NULL,
+CREATE TABLE personal_profesional (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    personal                        INT NOT NULL,
     cedula                          VARCHAR(12) DEFAULT NULL,
     especialidad                    SMALLINT NOT NULL,
     universidad                     VARCHAR(250) DEFAULT NULL,
     egreso                          SMALLINT DEFAULT NULL,
     universidad_municipio           INT DEFAULT NULL,
     color_agenda                    VARCHAR(7) NOT NULL DEFAULT '#07F',
-    CONSTRAINT FK_personalmedicos_id FOREIGN KEY(id) REFERENCES personal(id),
-    CONSTRAINT FK_personalmedicos_especialidad FOREIGN KEY(especialidad) REFERENCES especialidades(id)
+    f_registro                      DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_personalprofesional_personal FOREIGN KEY(personal) REFERENCES personal(id),
+    CONSTRAINT FK_personalprofesional_especialidad FOREIGN KEY(especialidad) REFERENCES especialidades(id)
 );
 
 CREATE TABLE personal_altas (
-    id                              INT NOT NULL,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    personal                        INT NOT NULL,
     f_alta                          DATE NOT NULL,
     f_baja                          DATE DEFAULT NULL,
     razon_baja                      VARCHAR(512) DEFAULT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
-    CONSTRAINT FK_personalaltas_id FOREIGN KEY(id) REFERENCES personal(id)
+    CONSTRAINT FK_personalaltas_personal FOREIGN KEY(personal) REFERENCES personal(id)
 );
 
 CREATE TABLE usuarios (
@@ -234,20 +240,24 @@ CREATE TABLE usuarios (
     password_hash                   VARCHAR(255) NOT NULL,
     tipo_usuario                    SMALLINT NOT NULL,
     activo                          SMALLINT NOT NULL DEFAULT 1,
-    f_registrado                    DATETIME NOT NULL,
+    f_registro                      DATETIME NOT NULL,
     f_ultima_conexion               DATETIME DEFAULT NULL,
-    f_actualizacion                 DATETIME DEFAULT NULL
+    f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_usuarios_tipo FOREIGN KEY(tipo_usuario) REFERENCES usuarios_tipos(id)
 );
 
-INSERT INTO usuarios(uuid, nombre, usuario, password_hash, tipo_usuario, activo, f_registrado) 
-                VALUES(10, 'Admin', 'admin', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 1, 1, NOW()),
+INSERT INTO usuarios(uuid, nombre, usuario, password_hash, tipo_usuario, activo, f_registro) 
+                VALUES(10, 'Admin', 'admin', '$2y$10$MqUTuFBUs.OIhkWSAxL3A.RfbglmDA9Uy/vgfYNOUvs2kI0EkBaYK', 1, 1, NOW()),
                         (20, 'Juan', 'juan', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW()),
                         (30, 'Eliver', 'eliver', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW());
 
 CREATE TABLE personal_usuarios (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     personal                        INT NOT NULL,
     usuario                         INT NOT NULL,
+    activo                          TINYINT NOT NULL DEFAULT 1,
     f_registro                      DATETIME NOT NULL,
+    f_removido                      DATETIME DEFAULT NULL,
     CONSTRAINT FK_personalusuarios_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_personalusuarios_usuario FOREIGN KEY(usuario) REFERENCES usuarios(id)
 );
@@ -256,13 +266,14 @@ INSERT INTO personal_usuarios(personal, usuario, f_registro) VALUES(1, 2, NOW())
                                                                     (2, 3, NOW());
 
 CREATE TABLE personal_sueldos (
-    id                              INT NOT NULL,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    personal                        INT NOT NULL,
     sueldo_anterior                 NUMERIC(18, 2) NOT NULL DEFAULT 0,
     sueldo_actual                   NUMERIC(18, 2) NOT NULL DEFAULT 0,
     actualizo                       INT NOT NULL,
     f_apartir_de                    DATE NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
-    CONSTRAINT FK_personalsueldos_id FOREIGN KEY(id) REFERENCES personal(id),
+    CONSTRAINT FK_personalsueldos_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_personalsueldos_actualizo FOREIGN KEY(actualizo) REFERENCES usuarios(id)
 );
 
@@ -433,6 +444,7 @@ CREATE INDEX IDX_bloqueosagenda_personal_inicio_fin ON bloqueos_agenda(personal,
 CREATE TABLE clientes (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    consecutivo                     INT DEFAULT NULL,
     clave                           VARCHAR(16) UNIQUE,
     es_empresa                      SMALLINT NOT NULL DEFAULT 0,
     empresa                         VARCHAR(255) DEFAULT NULL,
@@ -454,7 +466,7 @@ CREATE TABLE clientes (
     ultimo_pago                     NUMERIC(18, 2) NOT NULL DEFAULT 0,
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
     f_ultimo_pago                   DATETIME DEFAULT NULL,
     CONSTRAINT FK_clientes_genero FOREIGN KEY(genero) REFERENCES generos(id),
     CONSTRAINT FK_clientes_colonia FOREIGN KEY(colonia) REFERENCES colonias(id),
@@ -517,9 +529,10 @@ CREATE TABLE clientes_facturacion (
     num_int                         VARCHAR(12) DEFAULT NULL,
     colonia                         INT DEFAULT NULL,
     cp                              CHAR(5) NOT NULL,
+    telefono                        VARCHAR(40) DEFAULT NULL,
     email                           VARCHAR(255) DEFAULT NULL,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
     f_ultima_factura                DATETIME DEFAULT NULL,
     CONSTRAINT FK_clientesfacturacion_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
     CONSTRAINT FK_clientesfacturacion_regimen FOREIGN KEY(regimen) REFERENCES facturacion_regimen(id),
@@ -543,6 +556,7 @@ INSERT INTO parentescos(codigo, descripcion) VALUES('self', 'El cliente es el mi
 CREATE TABLE pacientes (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    consecutivo                     INT DEFAULT NULL,
     clave                           VARCHAR(16) UNIQUE,
     nombre                          VARCHAR(60) NOT NULL,
     paterno                         VARCHAR(60) DEFAULT NULL,
@@ -558,14 +572,14 @@ CREATE TABLE pacientes (
     num_int                         VARCHAR(12) DEFAULT NULL,
     colonia                         INT DEFAULT NULL,
     cp                              VARCHAR(5) DEFAULT NULL,
-    registro                        INT NOT NULL,
-    f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
-    f_ultima_visita                 DATETIME DEFAULT NULL,
     medicamentos                    VARCHAR(2048) DEFAULT NULL,
     suplementos                     VARCHAR(2048) DEFAULT NULL,
     antecedentes_familiares         VARCHAR(2048) DEFAULT NULL,
     observaciones_generales         VARCHAR(2048) DEFAULT NULL,
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
+    f_ultima_visita                 DATETIME DEFAULT NULL,
     CONSTRAINT FK_pacientes_genero FOREIGN KEY(genero) REFERENCES generos(id),
     CONSTRAINT FK_pacientes_colonia FOREIGN KEY(colonia) REFERENCES colonias(id),
     CONSTRAINT FK_pacientes_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
@@ -581,7 +595,7 @@ CREATE TABLE clientes_pacientes (
     registro                        INT NOT NULL,
     activo                          SMALLINT NOT NULL DEFAULT 1,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT UK_clientespaciente_paciente UNIQUE(cliente, paciente),
     CONSTRAINT FK_clientespacientes_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
     CONSTRAINT FK_clientespacientes_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
@@ -711,7 +725,7 @@ CREATE TABLE articulos (
     habilitado_venta                SMALLINT NOT NULL DEFAULT 1,
     activo                          SMALLINT NOT NULL DEFAULT 1,
     registro                        INT NOT NULL,
-    f_registrado                    DATETIME NOT NULL,
+    f_registro                    DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
     CONSTRAINT FK_articulos_categoria FOREIGN KEY(categoria) REFERENCES articulos_categoria(id),
     CONSTRAINT FK_articulos_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
@@ -838,16 +852,17 @@ INSERT INTO citas_asuntos(codigo, asunto) VALUES('consulta', 'Consulta'),
 CREATE TABLE citas_estatus (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
-    estatus                         VARCHAR(40) NOT NULL
+    estatus                         VARCHAR(40) NOT NULL,
+    color                           VARCHAR(20) DEFAULT NULL
 );
 
-INSERT INTO citas_estatus(codigo, estatus) VALUES('agendada', 'Cita Agendada'),
-                                                        ('rechazada', 'Cita Rechazada'),
-                                                        ('en_espera', 'En Espera'),
-                                                        ('en_proceso', 'En Proceso'),
-                                                        ('no_presento', 'No se presento'),
-                                                        ('finalizada', 'Cita Finalizada'),
-                                                        ('cancelada', 'Cita Cancelada');
+INSERT INTO citas_estatus(codigo, estatus, color) VALUES('agendada', 'Cita Agendada', '#AAAAAA'),
+                                                        ('rechazada', 'Cita Rechazada', '#B22222'),
+                                                        ('en_espera', 'En Espera', '#FA8B0C'),
+                                                        ('en_proceso', 'En Proceso', '#5840FF'),
+                                                        ('no_presento', 'No se presento', '#E9D502'),
+                                                        ('finalizada', 'Cita Finalizada', '#3147D3'),
+                                                        ('cancelada', 'Cita Cancelada', '#8E1B1B');
 
 CREATE TABLE citas_formas (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -1259,7 +1274,7 @@ CREATE TABLE proveedores (
     tipo_contribuyente              CHAR(1) NOT NULL,
     telefono_1                      VARCHAR(15) DEFAULT NULL,
     telefono_2                      VARCHAR(15) DEFAULT NULL,
-    celular                         VARCHAR(15) DEFAULT NULL,
+    movil                         VARCHAR(15) DEFAULT NULL,
     email                           VARCHAR(255) DEFAULT NULL,
     calle                           VARCHAR(120) DEFAULT NULL,
     num_ext                         VARCHAR(12) DEFAULT NULL,
@@ -1435,7 +1450,7 @@ CREATE TABLE productos (
     unidad                          VARCHAR(8) NOT NULL DEFAULT 1,
     habilitado_venta                SMALLINT NOT NULL DEFAULT 1,
     registro                        INT NOT NULL,
-    f_registrado                    DATETIME NOT NULL,
+    f_registro                    DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
     CONSTRAINT FK_productos_categoria FOREIGN KEY(categoria) REFERENCES productos_categoria(id),
     CONSTRAINT FK_productos_unidad FOREIGN KEY(unidad) REFERENCES unidades(id),

@@ -115,7 +115,6 @@ class AuthController extends Controller
                 (
                     id,
                     usuario,
-                    token_aux,
                     token_hash,
                     f_registro,
                     ultima_actividad,
@@ -128,7 +127,6 @@ class AuthController extends Controller
                 (
                     :id,
                     :usuario,
-                    :token_aux,
                     :token_hash,
                     NOW(),
                     NOW(),
@@ -140,7 +138,7 @@ class AuthController extends Controller
             ");
             $stmt->bindValue(':id', $session_id, PDO::PARAM_LOB);
             $stmt->bindValue(':usuario', (int)$user['id'], PDO::PARAM_INT);
-            $stmt->bindValue(':token_aux', $token, PDO::PARAM_STR);
+            // $stmt->bindValue(':token_aux', $token, PDO::PARAM_STR);
             $stmt->bindValue(':token_hash', $tokenHash, PDO::PARAM_LOB);
             $stmt->bindValue(':expira_en', $expiraEn->format('Y-m-d H:i:s'), PDO::PARAM_STR);
             $stmt->bindValue(':ip', $ip);

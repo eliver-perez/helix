@@ -42,7 +42,6 @@ function Autenticar() {
 						console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
 
 						alert(XMLHttpRequest.responseText);
-						// ShowToastMessage(errorThrown + ' - ' + textStatus, 'error');
 						autenticando = false;
 					}  
 			});

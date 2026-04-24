@@ -33,7 +33,7 @@
 
    <!-- inject:js-->
    <script src="<?= base_url('../template/assets/vendor_assets/js/apexcharts.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/datepicker-full.min.js'); ?>"></script>
+   <script src="<?= base_url('../template/assets/vendor_assets/js/datepicker-full.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/fslightbox.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/index.global.min.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/mixitup.min.js'); ?>"></script>
@@ -62,6 +62,9 @@
     <script>
         $(document).ready(function(e) {
 			InitializeValues('<?= base_url(''); ?>');
+         ActiveMenu(typeof currentLink !== 'undefined' && currentLink !== null 
+            ? currentLink 
+            : '<?= base_url(''); ?>');
 		});
     </script>
 </body>

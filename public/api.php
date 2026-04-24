@@ -31,7 +31,7 @@ require APP_PATH . '/Routes/api.php';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $uri = $_SERVER['REQUEST_URI'] ?? '/';
-
+// die($uri);
 $router->dispatch($method, $uri);
 
 function loadEnv(string $path): void
