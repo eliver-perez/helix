@@ -773,29 +773,31 @@ INSERT INTO servicios (codigo, servicio, descripcion, duracion_min, costo_base, 
 ('pedicure-clinico',        'Pedicure Clínico',                     'Servicio estético con enfoque en salud del pie',                                60, 800, 1, 0);
 
 CREATE TABLE personal_servicios (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     personal                        INT NOT NULL,
     servicio                        SMALLINT NOT NULL,
     costo                           NUMERIC(18,2) NOT NULL,
-    CONSTRAINT PK_personalservicios PRIMARY KEY (personal, servicio),
+    f_registro                      DATETIME NOT NULL,
+    f_baja                          DATETIME DEFAULT NULL,
     CONSTRAINT FK_personalservicios_personal FOREIGN KEY (personal) REFERENCES personal(id),
     CONSTRAINT FK_personalservicios_servicio FOREIGN KEY (servicio) REFERENCES servicios(id)
 );
 
 
 
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(1, 1, 500);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(1, 4, 600);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(1, 6, 840);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(1, 7, 920);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(1, 11, 300);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(1, 15, 1400);
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 1, 500, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 4, 600, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 6, 840, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 7, 920, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 11, 300, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 15, 1400, NOW());
 
 
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(2, 1, 450);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(2, 4, 660);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(2, 6, 790);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(2, 11, 400);
-INSERT INTO personal_servicios(personal, servicio, costo) VALUES(2, 15, 1100);
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 1, 450, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 4, 660, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 6, 790, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 11, 400, NOW());
+INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 15, 1100, NOW());
 
 
 
@@ -873,6 +875,7 @@ CREATE TABLE citas_formas (
 INSERT INTO citas_formas(codigo, forma) VALUES('presencial', 'Presencial'),
                                                     ('telefonica', 'Teléfono'),
                                                     ('correo', 'E-Mail'),
+                                                    ('whatsapp', 'WhatsApp'),
                                                     ('agenda_digital', 'Agenda Digital');
 
 CREATE TABLE citas (
@@ -894,7 +897,7 @@ CREATE TABLE citas (
     pagado                          NUMERIC(18, 2) NOT NULL DEFAULT 0,
     bonificacion                    NUMERIC(18, 2) NOT NULL DEFAULT 0,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT FK_citas_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_citas_asunto FOREIGN KEY(asunto) REFERENCES citas_asuntos(id),
     CONSTRAINT FK_citas_forma FOREIGN KEY(forma) REFERENCES citas_formas(id),

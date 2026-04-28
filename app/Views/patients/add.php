@@ -485,5 +485,6 @@
 <script src="<?= asset('js/patients/add.js'); ?>"></script>
 
 <script>
+    var callbackRequest = '<?= isset($_GET['callback']) ? $_GET['callback'] : ''; ?>';
     var currentLink = '<?= base_url('patients'); ?>';
 </script>

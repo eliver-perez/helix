@@ -258,7 +258,10 @@ function RegisterPatient() {
             console.log('Success!', response);
             ShowSweetAlertConfirmCallback('success', 'Paciente Registrado', '', 'Entendido', (result) => {
                 if(result.isConfirmed) {
-                    window.location.href = `${homeURL}/patients`
+                    if(callbackRequest == 'schedule')
+                        window.location.href = `${homeURL}/appointments/add?pid=${response.data.puid}`
+                    else
+                        window.location.href = `${homeURL}/patients`
                 }
             });
         },

@@ -25,7 +25,7 @@ class PatientsService extends Service
     ) {
     }
 
-    public function create(array $data): int {
+    public function create(array $data): ?array {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
 
         $firstName = $this->normalizeRequiredText(
@@ -193,7 +193,11 @@ class PatientsService extends Service
             }
 
             $conn->commit();
-            return $patientId;
+
+            return [
+                'id' => $patientId,
+                'uuid' => $this->uuidBinaryToString($patientUuid),
+            ];
         } catch (\Throwable $e) {
             if ($conn->inTransaction()) {
                 $conn->rollBack();

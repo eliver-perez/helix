@@ -36,6 +36,7 @@
    <script src="<?= base_url('../template/assets/vendor_assets/js/datepicker-full.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/fslightbox.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/index.global.min.js'); ?>"></script>
+   <script src="<?= base_url('../template/assets/vendor_assets/js/fullcalendar-locales-es-min.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/mixitup.min.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/moment.min.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/nouislider.min.js'); ?>"></script>
@@ -57,6 +58,7 @@
     <script src="<?= asset('js/sweetalert.js'); ?>"></script>
     <script src="<?= asset('js/sha512.js'); ?>"></script>
     <script src="<?= asset('js/forms.js'); ?>"></script>
+    <script src="<?= asset('js/accounting.js'); ?>"></script>
    <!-- endinject-->
 
     <script>

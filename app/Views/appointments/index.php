@@ -65,7 +65,7 @@
                      </div>
                   </div>
                   <div class="4xl:w-[75%] w-full px-[15px] mb-[30px]">
-                     <div id='full-calendar' class='relative bg-white main-calendar dark:bg-box-dark rounded-10 p-[25px] overflow-x-auto scrollbar'>
+                     <div id='calendario-agenda' class='full-calendar relative bg-white main-calendar dark:bg-box-dark rounded-10 p-[25px] overflow-x-auto scrollbar'>
                      </div>
                   </div>
                </div>

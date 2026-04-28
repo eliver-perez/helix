@@ -37,7 +37,7 @@ Datepicker.locales.es = {
   weekStart: 0 // 0 = domingo, 1 = lunes
 };
 
-function initDatePicker(id) {
+function initDatePicker(id, onChangeCallback) {
   const elem = document.getElementById(id);
   if (!elem) return null;
 
@@ -45,12 +45,22 @@ function initDatePicker(id) {
     return elem.datepicker;
   }
 
-  return new Datepicker(elem, {
+  const dp = new Datepicker(elem, {
     language: 'es',
     format: 'dd/mm/yyyy',
     nextArrow: '<i class="uil uil-angle-right-b"></i>',
     prevArrow: '<i class="uil uil-angle-left-b"></i>'
   });
+
+  // Escuchar el evento de selección de fecha
+  elem.addEventListener('changeDate', function(e) {
+    if (onChangeCallback && typeof onChangeCallback === 'function') {
+      // e.detail.date contiene el objeto de fecha seleccionado
+      onChangeCallback(e.detail.date, elem.value);
+    }
+  });
+
+  return dp;
 }
 
 function ActiveMenu(l) {
@@ -59,4 +69,27 @@ function ActiveMenu(l) {
   links.forEach(link => {
       link.classList.add('active');
   });
+}
+
+function escapeHTML(str) {
+	return str
+	  .replace(/&/g, "&amp;")
+	  .replace(/'/g, "\\'")
+	  .replace(/"/g, '&quot;')
+	  .replace(/</g, "&lt;")
+	  .replace(/>/g, "&gt;");
+}
+
+function formatTimeTo12h(time24) {
+    if (!time24) return '';
+
+    const [hoursStr, minutes] = time24.split(':');
+    let hours = parseInt(hoursStr, 10);
+
+    const period = hours >= 12 ? 'PM' : 'AM';
+
+    hours = hours % 12;
+    hours = hours === 0 ? 12 : hours; // 0 → 12
+
+    return `${hours}:${minutes} ${period}`;
 }

@@ -53,8 +53,17 @@ class PatientsController extends Controller
             $repository = $this->getRepository();
 
             $search = trim((string)$this->request->query('search', ''));
+            
+            $limit = (int)$this->request->query('limit', 10);
+            $offset = (int)$this->request->query('offset', 0);
 
-            $data = $repository->getAll($search !== '' ? $search : null);
+            $limit = max(1, min($limit, 50));
+            $offset = max(0, $offset);
+
+            $data = $repository->getAll($search !== '' ? $search : null,
+                $limit,
+                $offset
+            );
 
             return $response->json([
                     'status' => 'OK',
@@ -86,7 +95,7 @@ class PatientsController extends Controller
 
             $service = $this->getService();
 
-            $patientId = $service->create([
+            $patient = $service->create([
                 'first_name'                => $request->input('nombre'),
                 'last_name'                 => $request->input('paterno'),
                 'last_name_2'               => $request->input('materno'),
@@ -127,7 +136,8 @@ class PatientsController extends Controller
                 'status' => 'OK',
                 'message' => 'Paciente registrado correctamente.',
                 'data' => [
-                    'staff_id' => $patientId
+                    'pid' => $patient['id'],
+                    'puid' => $patient['uuid'],
                 ]
             ], 201);
         } catch (InvalidArgumentException | RuntimeException $e) {

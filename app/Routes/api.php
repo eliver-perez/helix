@@ -11,7 +11,11 @@ use App\Controllers\StaffController;
 use App\Controllers\UsersController;
 use App\Controllers\BillingController;
 use App\Controllers\PatientsController;
+use App\Controllers\AppointmentsController;
 use App\Controllers\GenderController;
+use App\Controllers\AppointmentsTypesController;
+use App\Controllers\BookingChannelsController;
+use App\Controllers\ProceduresController;
 use App\Controllers\UserRoleController;
 use App\Controllers\RoleController;
 use App\Controllers\SpecialtyController;
@@ -35,6 +39,13 @@ $router->post('/api/staff', [StaffController::class, 'store']);
 $router->get('/api/users', [UsersController::class, 'index']);
 
 /**
+ * APPOINTMENTS ROUTES
+ */
+$router->get('/api/appointments/calendar', [AppointmentsController::class, 'calendar']);
+$router->post('/api/appointments', [AppointmentsController::class, 'schedule']);
+$router->post('/api/appointments/available-slots', [AppointmentsController::class, 'availableSlots']);
+
+/**
  * BILLING ROUTES
  */
 $router->get('/api/billing-regimenes', [BillingController::class, 'regimenes']);
@@ -49,6 +60,24 @@ $router->post('/api/patients', [PatientsController::class, 'store']);
  * GENDER ROUTES
  */
 $router->get('/api/genders', [GenderController::class, 'index']);
+
+/**
+ * APPOINTMENTS TYPE ROUTES
+ */
+$router->get('/api/appointments-types', [AppointmentsTypesController::class, 'index']);
+
+/**
+ * BOOKING TYPE ROUTES
+ */
+$router->get('/api/booking-channels', [BookingChannelsController::class, 'index']);
+
+/**
+ * PROCEDURES ROUTES
+ */
+$router->get('/api/procedures', [ProceduresController::class, 'index']);
+$router->get('/api/procedures/{id}', [ProceduresController::class, 'show']);
+$router->get('/api/procedures/{id}/staff', [ProceduresController::class, 'staff']);
+$router->get('/api/procedures/{procedureId}/staff/{staffId}', [ProceduresController::class, 'procedureStaffData']);
 
 /**
  * USER ROLE ROUTES

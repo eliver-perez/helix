@@ -246,81 +246,81 @@
     }
 
     /* ------- Full Calendar  -------- */
-    #full-calendar .fc-toolbar {
+    .full-calendar .fc-toolbar {
     @apply flex-wrap;
     }
-    #full-calendar .fc-toolbar-chunk > div {
+    .full-calendar .fc-toolbar-chunk > div {
     @apply flex items-center max-ssm:flex-wrap max-ssm:gap-[5px] max-ssm:justify-center;
     }
-    #full-calendar .fc-toolbar-chunk .fc-today-button {
+    .full-calendar .fc-toolbar-chunk .fc-today-button {
     @apply capitalize text-[13px] font-medium border border-regular dark:border-box-dark-up text-body dark:text-subtitle-dark bg-white dark:bg-transparent me-[30px] px-[15px] py-[6.5px] border-solid ;
     }
-    #full-calendar .fc-toolbar-chunk .fc-button.fc-prev-button,
-    #full-calendar .fc-toolbar-chunk .fc-button.fc-next-button {
+    .full-calendar .fc-toolbar-chunk .fc-button.fc-prev-button,
+    .full-calendar .fc-toolbar-chunk .fc-button.fc-next-button {
     @apply border border-regular dark:border-box-dark-up rounded bg-white dark:bg-transparent px-[0.563em] py-[0.25em] border-solid inline-flex items-center h-[34px];
     }
-    #full-calendar .fc-toolbar-chunk .fc-button.fc-prev-button span.fc-icon,
-    #full-calendar .fc-toolbar-chunk .fc-button.fc-next-button span.fc-icon {
+    .full-calendar .fc-toolbar-chunk .fc-button.fc-prev-button span.fc-icon,
+    .full-calendar .fc-toolbar-chunk .fc-button.fc-next-button span.fc-icon {
     @apply -mt-1 text-sm text-light dark:text-subtitle-dark;
     }
-    #full-calendar .fc-toolbar-chunk .fc-toolbar-title {
+    .full-calendar .fc-toolbar-chunk .fc-toolbar-title {
     @apply mx-5 my-0 text-base font-medium text-dark dark:text-title-dark;
     }
-    #full-calendar .fc-toolbar-chunk .fc-button-group {
+    .full-calendar .fc-toolbar-chunk .fc-button-group {
     @apply rounded-[0_4px_4px_0];
     }
-    #full-calendar .fc-toolbar-chunk .fc-button-group .fc-button-primary {
+    .full-calendar .fc-toolbar-chunk .fc-button-group .fc-button-primary {
     @apply bg-white dark:bg-box-dark-down;
     }
-    #full-calendar
+    .full-calendar
     .fc-toolbar-chunk
     .fc-button-group
     .fc-button-primary.fc-button-active {
     @apply text-white bg-primary dark:text-white;
     }
-    #full-calendar .fc-toolbar-chunk .fc-button-group .fc-button {
+    .full-calendar .fc-toolbar-chunk .fc-button-group .fc-button {
     @apply text-[13px] font-medium capitalize border border-regular dark:border-box-dark-up text-light dark:text-subtitle-dark px-[13.68px] py-[6.5px] border-solid first:rounded-[4px_0_0_4px] focus:shadow-[0_0];
     }
-    #full-calendar
+    .full-calendar
     .fc-toolbar-chunk
     .fc-button-group
     .fc-button.fc-dayGridMonth-button {
     @apply border-r-regular dark:border-r-box-dark-up rounded-[0_4px_4px_0] border-r border-solid;
     }
-    #full-calendar
+    .full-calendar
     .fc-toolbar-chunk
     .fc-button-group
     .fc-button.fc-listMonth-button {
     @apply flex items-center ml-0 border-0 border-none text-light dark:text-subtitle-dark dark:bg-transparent;
     }
-    #full-calendar
+    .full-calendar
     .fc-toolbar-chunk
     .fc-button-group
     .fc-button.fc-listMonth-button
     i,
-    #full-calendar
+    .full-calendar
     .fc-toolbar-chunk
     .fc-button-group
     .fc-button.fc-listMonth-button
     svg,
-    #full-calendar
+    .full-calendar
     .fc-toolbar-chunk
     .fc-button-group
     .fc-button.fc-listMonth-button
     img {
     @apply text-[15px] min-w-[14px] text-primary me-1.5;
     }
-    #full-calendar
+    .full-calendar
     .fc-toolbar-chunk
     .fc-button-group
     .fc-button.fc-listMonth-button.fc-button-active {
     @apply bg-white dark:bg-box-dark-down text-primary;
     }
-    #full-calendar .fc-toolbar-chunk .fc-button-group .fc-button:focus {
+    .full-calendar .fc-toolbar-chunk .fc-button-group .fc-button:focus {
         @apply shadow-none outline-none;
     }
 
-    #full-calendar .fc-toolbar{
+    .full-calendar .fc-toolbar{
         @apply max-md:flex-col gap-y-[10px] max-md:justify-center; 
     }
     .fc .fc-event.primary .fc-list-event-dot{
