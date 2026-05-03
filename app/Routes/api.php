@@ -13,7 +13,9 @@ use App\Controllers\BillingController;
 use App\Controllers\PatientsController;
 use App\Controllers\AppointmentsController;
 use App\Controllers\GenderController;
+use App\Controllers\ConsentTemplatesController;
 use App\Controllers\AppointmentsTypesController;
+use App\Controllers\AppointmentsStatusController;
 use App\Controllers\BookingChannelsController;
 use App\Controllers\ProceduresController;
 use App\Controllers\UserRoleController;
@@ -42,6 +44,7 @@ $router->get('/api/users', [UsersController::class, 'index']);
  * APPOINTMENTS ROUTES
  */
 $router->get('/api/appointments/calendar', [AppointmentsController::class, 'calendar']);
+$router->get('/api/appointments/status', [AppointmentsStatusController::class, 'index']);
 $router->post('/api/appointments', [AppointmentsController::class, 'schedule']);
 $router->post('/api/appointments/available-slots', [AppointmentsController::class, 'availableSlots']);
 
@@ -60,6 +63,14 @@ $router->post('/api/patients', [PatientsController::class, 'store']);
  * GENDER ROUTES
  */
 $router->get('/api/genders', [GenderController::class, 'index']);
+
+/**
+ * CONSENT TEMPLATES ROUTES
+ */
+$router->get('/api/consent-templates', [ConsentTemplatesController::class, 'index']);
+$router->post('/api/consent-templates', [ConsentTemplatesController::class, 'store']);
+$router->get('/api/consent-templates/{id}', [ConsentTemplatesController::class, 'show']);
+$router->put('/api/consent-templates/{id}', [ConsentTemplatesController::class, 'update']);
 
 /**
  * APPOINTMENTS TYPE ROUTES

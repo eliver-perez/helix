@@ -11,6 +11,20 @@ INSERT INTO ajustes_tipo(codigo, tipo) VALUES('int', 'Entero'),
                                                     ('json', 'JSON'),
                                                     ('boolean', 'Boolean');
 
+CREATE TABLE tipos_datos (
+    id              TINYINT AUTO_INCREMENT PRIMARY KEY,
+    codigo          VARCHAR(20) NOT NULL UNIQUE,
+    tipo            VARCHAR(30) NOT NULL
+);
+
+INSERT INTO tipos_datos(codigo, tipo) VALUES('int', 'Entero'),
+                                                    ('string', 'Texto'),
+                                                    ('float', 'Flotante'),
+                                                    ('double', 'Double'),
+                                                    ('money', 'Dinero'),
+                                                    ('date', 'Fecha'),
+                                                    ('datetime', 'Fecha y Hora');
+
 CREATE TABLE ajustes_categoria (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(15) NOT NULL UNIQUE,
@@ -855,16 +869,18 @@ CREATE TABLE citas_estatus (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
     estatus                         VARCHAR(40) NOT NULL,
-    color                           VARCHAR(20) DEFAULT NULL
+    text_color                      VARCHAR(20) DEFAULT NULL,
+    classname                       VARCHAR(20) DEFAULT NULL,
+    background                      VARCHAR(10) DEFAULT NULL
 );
 
-INSERT INTO citas_estatus(codigo, estatus, color) VALUES('agendada', 'Cita Agendada', '#AAAAAA'),
-                                                        ('rechazada', 'Cita Rechazada', '#B22222'),
-                                                        ('en_espera', 'En Espera', '#FA8B0C'),
-                                                        ('en_proceso', 'En Proceso', '#5840FF'),
-                                                        ('no_presento', 'No se presento', '#E9D502'),
-                                                        ('finalizada', 'Cita Finalizada', '#3147D3'),
-                                                        ('cancelada', 'Cita Cancelada', '#8E1B1B');
+INSERT INTO citas_estatus(codigo, estatus, text_color, classname, background) VALUES('agendada', 'Cita Agendada', '#A0DADB', 'secondary', '#145D5E'),
+                                                                                    ('rechazada', 'Cita Rechazada', '#B22222', 'warning', '#CC7F7F'),
+                                                                                    ('en_espera', 'En Espera', '#FA8B0C', 'primary', '#686CE3'),
+                                                                                    ('en_proceso', 'En Proceso', '#5840FF', 'primary', '#5F63F2'),
+                                                                                    ('no_presento', 'No se presento', '#B22222', 'warning', '#E9D502'),
+                                                                                    ('finalizada', 'Cita Finalizada', '#2C6846', 'success', '#45A26E'),
+                                                                                    ('cancelada', 'Cita Cancelada', '#8E1B1B', 'warning', '#C58686');
 
 CREATE TABLE citas_formas (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -961,6 +977,113 @@ CREATE TABLE citas_servicios_articulos (
     CONSTRAINT FK_citasserviciosarticulos_cita FOREIGN KEY (cita) REFERENCES citas(id),
     CONSTRAINT FK_citasserviciosarticulos_servicio FOREIGN KEY (servicio) REFERENCES servicios(id),
     CONSTRAINT FK_citasserviciosarticulos_articulo FOREIGN KEY (articulo) REFERENCES articulos(id)
+);
+
+CREATE TABLE plantillas_estatus (
+    id                              TINYINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(30) NOT NULL,
+    estatus                         VARCHAR(60) NOT NULL
+);
+
+INSERT INTO plantillas_estatus(id, codigo, estatus) VALUES(1, 'borrador', 'Borrador'),
+                                                            (2, 'publicado', 'Publicado'),
+                                                            (3, 'cancelado', 'Cancelado');
+
+CREATE TABLE consentimientos_plantillas_variables (
+    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(50) NOT NULL UNIQUE,
+    descripcion                     VARCHAR(255) DEFAULT NULL,
+    origen                          VARCHAR(50) NOT NULL,
+    tipo_dato                       TINYINT NOT NULL,
+    activo                          TINYINT NOT NULL DEFAULT 1,
+    CONSTRAINT FK_consentimientosplantillasvariables_tipodato FOREIGN KEY(tipo_dato) REFERENCES tipos_datos(id)
+);
+
+CREATE TABLE consentimientos_plantillas (
+    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+    codigo                          VARCHAR(50) NOT NULL UNIQUE,
+    nombre                          VARCHAR(150) NOT NULL,
+    version                         SMALLINT NOT NULL,
+    plantilla                       TINYINT NOT NULL,
+    logo                            TEXT DEFAULT NULL,
+    logo_checksum                   CHAR(32) DEFAULT NULL,
+    logo_width                      TINYINT DEFAULT 30,
+    interlineado                    DECIMAL(6, 2) DEFAULT 1,
+    font_size                       DECIMAL(6, 2) DEFAULT 1,
+    delta_borrador                  LONGTEXT NOT NULL DEFAULT '[]',
+    documento_borrador              LONGTEXT NOT NULL DEFAULT '',
+    delta_json                      LONGTEXT NOT NULL DEFAULT '[]',
+    contenido_html                  LONGTEXT NOT NULL DEFAULT '',
+    estatus                         TINYINT NOT NULL,
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_consentimientosplantillas_estatus FOREIGN KEY(estatus) REFERENCES plantillas_estatus(id),
+    CONSTRAINT FK_consentimientosplantillas_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
+);
+
+CREATE TABLE servicios_consentimientos (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    servicio            SMALLINT NOT NULL,
+    plantilla           SMALLINT NOT NULL,
+    obligatorio         BOOLEAN NOT NULL DEFAULT 1,
+    vigencia_dias       INT DEFAULT NULL,
+    activo              BOOLEAN NOT NULL DEFAULT 1,
+
+    CONSTRAINT FK_serviciosconsentimientos_servicio FOREIGN KEY(servicio) REFERENCES servicios(id),
+    CONSTRAINT FK_serviciosconsentimientos_plantilla FOREIGN KEY(plantilla) REFERENCES consentimientos_plantillas(id)
+);
+
+CREATE TABLE consentimiento_items_tipo (
+    id                  SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo              VARCHAR(20) NOT NULL UNIQUE,
+    tipo                VARCHAR(40) NOT NULL
+);
+
+INSERT INTO consentimiento_items_tipo(codigo, tipo) VALUES ('riesgo', 'Riesgo'),
+                                                            ('beneficio', 'Beneficio'),
+                                                            ('alternativa', 'Alternativa'),
+                                                            ('indicacion', 'Indicación'),
+                                                            ('contraindicacion', 'Contraindicación');
+
+CREATE TABLE servicios_consentimiento_items (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    servicio            SMALLINT NOT NULL,
+    tipo                SMALLINT NOT NULL,
+    descripcion         VARCHAR(700) NOT NULL,
+    orden               SMALLINT NOT NULL DEFAULT 1,
+    activo              BOOLEAN NOT NULL DEFAULT 1,
+    CONSTRAINT FK_serviciosconsentimientoitems_servicio FOREIGN KEY(servicio) REFERENCES servicios(id),
+    CONSTRAINT FK_serviciosconsentimientoitems_tipo FOREIGN KEY(tipo) REFERENCES consentimiento_items_tipo(id)
+);
+
+CREATE TABLE pacientes_consentimientos (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                BINARY(16) NOT NULL UNIQUE,
+    paciente            INT NOT NULL,
+    cita                INT DEFAULT NULL,
+    servicio            SMALLINT DEFAULT NULL,
+    plantilla           SMALLINT NOT NULL,
+
+    version             VARCHAR(20) NOT NULL,
+    archivo_pdf         VARCHAR(500) NOT NULL,
+    firma_archivo       VARCHAR(500) DEFAULT NULL,
+    hash_pdf            CHAR(64) DEFAULT NULL,
+
+    firmado_por         VARCHAR(160) NOT NULL,
+    parentesco          SMALLINT DEFAULT NULL,
+
+    registro            INT NOT NULL,
+    f_firma             DATETIME NOT NULL,
+    f_registro          DATETIME NOT NULL,
+
+    CONSTRAINT FK_pacientesconsentimientos_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
+    CONSTRAINT FK_pacientesconsentimientos_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    CONSTRAINT FK_pacientesconsentimientos_servicio FOREIGN KEY(servicio) REFERENCES servicios(id),
+    CONSTRAINT FK_pacientesconsentimientos_plantilla FOREIGN KEY(plantilla) REFERENCES consentimientos_plantillas(id),
+    CONSTRAINT FK_pacientesconsentimientos_parentesco FOREIGN KEY(parentesco) REFERENCES parentescos(id),
+    CONSTRAINT FK_pacientesconsentimientos_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
 CREATE TABLE tipos_pies (

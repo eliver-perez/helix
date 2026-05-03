@@ -598,7 +598,7 @@
     .datepicker{
         @apply w-full;
     }
-    #mini-datepicker .datepicker{
+    .mini-datepicker  .datepicker{
         @apply max-w-[380px]
     }
     
@@ -618,8 +618,8 @@
     #widget-datepicker .datepicker .dow, #widget-datepicker .datepicker-cell{
         @apply ssm:h-[46px] ssm:min-w-[46px];
     }
-    #mini-datepicker .datepicker .dow,
-    #mini-datepicker .datepicker-cell{
+    .mini-datepicker  .datepicker .dow,
+    .mini-datepicker  .datepicker-cell{
         @apply 4xl:h-[35px] 4xl:min-w-[35px] 4xl:ms-[6px] 4xl:me-[6px] 4xl:my-[6px] 4xl:flex-auto;
     }
     .datepicker-cell.selected, .datepicker-cell.selected:hover,

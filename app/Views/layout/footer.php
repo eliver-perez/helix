@@ -40,7 +40,6 @@
    <script src="<?= base_url('../template/assets/vendor_assets/js/mixitup.min.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/moment.min.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/nouislider.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/quill.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/svg-pan-zoom.min.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/svgMap.min.js'); ?>"></script>
    <script src="<?= base_url('../template/assets/vendor_assets/js/tw-elements.umd.min.js'); ?>"></script>

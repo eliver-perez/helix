@@ -2565,7 +2565,7 @@ body {
   width: 100%;
 }
 
-#mini-datepicker .datepicker {
+.mini-datepicker  .datepicker {
   max-width: 380px;
 }
 
@@ -2598,8 +2598,8 @@ body {
 }
 
 @media (min-width: 1699px) {
-  #mini-datepicker .datepicker .dow,
-    #mini-datepicker .datepicker-cell {
+  .mini-datepicker  .datepicker .dow,
+    .mini-datepicker  .datepicker-cell {
     margin-top: 6px;
     margin-bottom: 6px;
     margin-inline-start: 6px;
@@ -7350,6 +7350,11 @@ body {
   background-color: rgb(230 227 255 / var(--tw-bg-opacity));
 }
 
+.bg-\[\#f0f0f0\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(240 240 240 / var(--tw-bg-opacity));
+}
+
 .bg-\[\#a2a4f7\] {
   --tw-bg-opacity: 1;
   background-color: rgb(162 164 247 / var(--tw-bg-opacity));
@@ -9150,6 +9155,22 @@ body {
 
 .text-\[1\.1rem\] {
   font-size: 1.1rem;
+}
+
+.text-\[1\.3rem\] {
+  font-size: 1.3rem;
+}
+
+.text-\[1\.5rem\] {
+  font-size: 1.5rem;
+}
+
+.text-\[1\.7rem\] {
+  font-size: 1.7rem;
+}
+
+.text-\[1\.9rem\] {
+  font-size: 1.9rem;
 }
 
 .text-\[10px\] {
@@ -13194,8 +13215,17 @@ body {
           user-select: none;
 }
 
+.disabled\:bg-lightgray:disabled {
+  background-color: lightgray !important;
+}
+
 .disabled\:bg-transparent:disabled {
   background-color: transparent;
+}
+
+.disabled\:text-neutral-600:disabled {
+  --tw-text-opacity: 1;
+  color: rgb(91 91 91 / var(--tw-text-opacity));
 }
 
 .disabled\:text-neutral-400:disabled {

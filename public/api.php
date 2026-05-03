@@ -29,8 +29,10 @@ $router = new Router($request, $response);
 
 require APP_PATH . '/Routes/api.php';
 
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$uri = $_SERVER['REQUEST_URI'] ?? '/';
+// $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+// $uri = $_SERVER['REQUEST_URI'] ?? '/';
+$method = $request->method();
+$uri = $request->uri();
 // die($uri);
 $router->dispatch($method, $uri);
 

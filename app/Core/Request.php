@@ -22,6 +22,10 @@ class Request
         $this->headers = $this->parseHeaders();
         $this->bodyParams = $this->parseBody();
         $this->server = $_SERVER ?? [];
+
+        if ($this->method === 'POST' && isset($this->bodyParams['_method'])) {
+            $this->method = strtoupper((string)$this->bodyParams['_method']);
+        }
     }
 
     public function method(): string
@@ -66,6 +70,11 @@ class Request
         }
 
         return $this->bodyParams[$key] ?? $default;
+    }
+
+    public function file(string $key): ?array
+    {
+        return $_FILES[$key] ?? null;
     }
 
     public function all(): array

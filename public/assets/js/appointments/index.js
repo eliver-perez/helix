@@ -9,8 +9,18 @@ function InitializeValues(home) {
 	$('#btn-registrar-paciente').on('click', function() {
 		window.location.href = `${homeURL}/appointments/add`;
 	});
+	document.addEventListener('click', function (e) {
+		if (e.target.closest('.e-info-close')) {
+			closeEventInfoModal();
+		}
+
+		if (e.target.id === 'e-info-modal') {
+			closeEventInfoModal();
+		}
+	});
+	initDatePicker('mini-calendario');
+	GetAppointmentsStatus();
 	SetCalendar();
-	// GetAppointments();
 }
 
 function SetCalendar() {
@@ -44,10 +54,17 @@ function SetCalendar() {
 			const text = formatter.format(date.date.marker);
 			return text.charAt(0).toUpperCase() + text.slice(1);
 		},
+		eventTimeFormat: {
+			hour: 'numeric',
+			minute: '2-digit',
+			meridiem: 'short',
+			hour12: true
+		},
         listDayFormat: true,
         allDaySlot: false,
-        editable: true,
-        eventSources: [],
+        editable: false,
+		lazyFetching: false,
+        eventSources: [ ],
         contentHeight: 800,
         initialView: "timeGridWeek",
 		locale: 'es',
@@ -55,11 +72,52 @@ function SetCalendar() {
           document.querySelectorAll(".fc-list-day").forEach(function (item) {});
         },
         eventClick: function (infoEvent) {
-          console.log(infoEvent.event.title);
-          let infoModal = document.getElementById('e-info-modal');
-          infoModal.modal("show");
-          console.log(infoModal.find(".e-info-title"));
-          infoModal.find(".e-info-title").text(infoEvent.event.title);
+          	const modalElement = document.getElementById('e-info-modal');
+
+			modalElement.querySelector('.e-info-title').textContent =
+				infoEvent.event.title || '';
+
+			// modalElement.querySelector('.e-info-date').textContent =
+			// 	infoEvent.event.start
+			// 		? infoEvent.event.start.toLocaleDateString('es-MX', {
+			// 			weekday: 'long',
+			// 			year: 'numeric',
+			// 			month: 'long',
+			// 			day: 'numeric'
+			// 		})
+			// 		: '';
+			modalElement.querySelector('.e-info-date').textContent =
+				infoEvent.event.start
+					? infoEvent.event.start.toLocaleDateString('es-MX', {
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric'
+					})
+					: '';
+
+			modalElement.querySelector('.e-info-time').textContent =
+				formatEventTime(infoEvent.event);
+
+			modalElement.querySelector('.e-info-age').textContent =
+				infoEvent.event.extendedProps.age;
+
+			modalElement.querySelector('.e-info-dob').textContent =
+				infoEvent.event.extendedProps.dob;
+
+			modalElement.querySelector('.e-info-patient-code').textContent =
+				infoEvent.event.extendedProps.patient_code;
+
+			modalElement.querySelector('.e-info-email').textContent =
+				infoEvent.event.extendedProps.email;
+
+			modalElement.querySelector('.e-info-phone').textContent =
+				infoEvent.event.extendedProps.phone;
+
+			modalElement.querySelector('.e-info-description').textContent =
+				infoEvent.event.extendedProps.description || 'Sin descripción';
+
+			const modal = new te.Modal(modalElement);
+			modal.show();
         },
 		events: function(info, successCallback, failureCallback) {
 			$.ajax({
@@ -72,6 +130,7 @@ function SetCalendar() {
 				},
 				success: function(response) {
 					console.log(response);
+					successCallback(response.data.appointments);
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown) { 
 					console.log('STATUS:', textStatus);
@@ -79,6 +138,7 @@ function SetCalendar() {
 					console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
 
 					alert(XMLHttpRequest.responseText);
+					failureCallback();
 				}
 			});
 		}
@@ -92,6 +152,40 @@ function SetCalendar() {
         listMonthButton.insertBefore(icon, listMonthButton.firstChild);
       }
     }
+}
+
+function GetAppointmentsStatus() {
+	$('#sector-estatus').html('');
+	$.ajax({
+        url: `${homeURL}/api/appointments/status`,
+		type: 'get',
+		data: {
+			search: ''
+		},
+		processData: false,
+		contentType: false,
+		dataType: "json",
+		success: function(response) {
+			var options = '';
+			$.each(response.data.appointments_status, function(k, v) {
+				options += `<li class="flex items-center mb-[10px]">
+                                    <span 
+                                        class="appointment-li-status-item text-sm capitalize"
+                                        style="--dot-color: ${v.text_color};">
+                                        ${v.estatus}
+                                    </span>
+                            </li>`;
+			});
+			$('#sector-estatus').html(options);
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			console.log('STATUS:', textStatus);
+			console.log('ERROR:', errorThrown);
+			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
+
+			alert(XMLHttpRequest.responseText);
+		}  
+	});
 }
 
 function GetAppointments() {
@@ -143,4 +237,24 @@ function GetAppointments() {
 			alert(XMLHttpRequest.responseText);
 		}  
 	});
+}
+
+function formatEventTime(event) {
+    if (!event.start) return '';
+
+    const start = event.start.toLocaleTimeString('es-MX', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    if (!event.end) return start;
+
+    const end = event.end.toLocaleTimeString('es-MX', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    return `${start} – ${end}`;
 }

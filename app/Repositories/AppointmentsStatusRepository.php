@@ -18,7 +18,8 @@ class AppointmentsStatusRepository {
                 id,
                 codigo,
                 estatus,
-                color
+                background,
+                text_color
             FROM citas_estatus
             ORDER BY id ASC
         ");

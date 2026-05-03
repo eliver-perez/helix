@@ -20,12 +20,12 @@ class AppointmentsStatusController extends Controller
             $conn = $database->getConnection();
 
             $repository = new AppointmentsStatusRepository($conn);
-            $appointments_types = $repository->getAll();
+            $appointments_status = $repository->getAll();
 
             return $response->json([
                 'status' => 'OK',
                 'data' => [
-                    'appointments_types' => $appointments_types
+                    'appointments_status' => $appointments_status
                 ]
             ]);
         } catch (Throwable $e) {

@@ -26,15 +26,28 @@ class AppointmentsRepository
                     COALESCE(p.materno, '')
                 )
             ) paciente,
+            p.clave clave_paciente,
+            COALESCE(DATE_FORMAT(p.f_nacimiento, '%d/%m/%Y'), '') f_nacimiento,
+            p.email,
+            p.telefono,
+            g.genero,
             ca.asunto,
             c.fecha,
+            c.motivo_consulta,
             c.h_inicio,
-            c.h_fin
+            c.h_fin,
+            ce.text_color,
+            ce.classname,
+            ce.background
             FROM citas c
+                INNER JOIN citas_estatus ce
+                    ON c.estatus = ce.id
                 INNER JOIN citas_asuntos ca
                     ON c.asunto = ca.id
                 INNER JOIN pacientes p
                     ON c.paciente = p.id
+                INNER JOIN generos g
+                    ON p.genero = g.id
             WHERE c.fecha >= :start
                 AND c.fecha < :end
             ");

@@ -192,4 +192,43 @@ abstract class Service
     protected static function uuidStringToBinary(string $uuid): string {
         return hex2bin(str_replace('-', '', $uuid));
     }
+
+    protected function formatTimeTo12h(?string $time24): string {
+        if (!$time24) return '';
+
+        $parts = explode(':', $time24);
+
+        if (count($parts) < 2) return '';
+
+        $hours = (int)$parts[0];
+        $minutes = $parts[1];
+
+        $period = $hours >= 12 ? 'PM' : 'AM';
+
+        $hours = $hours % 12;
+        $hours = $hours === 0 ? 12 : $hours; // 0 → 12
+
+        return "{$hours}:{$minutes} {$period}";
+    }
+
+    protected function calculateAge(string $dob): string {
+        $aux = new \DateTime($dob);
+        $hoy = new \DateTime();
+
+        $diff = $hoy->diff($aux);
+
+        $years = $diff->y;
+        $months = $diff->m;
+        $days = $diff->d;
+
+        if ($years >= 1) {
+            return "{$years} años";
+        }
+
+        if ($months >= 1) {
+            return "0 años {$months} meses";
+        }
+
+        return "{$days} días";
+    }
 }

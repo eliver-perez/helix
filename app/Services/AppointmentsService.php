@@ -145,26 +145,41 @@ class AppointmentsService extends Service
             throw new InvalidArgumentException('Formato de fechas inválido');
         }
 
-        $start_date = $startDate->format('Y-m-d');
-        $end_date   = $endDate->format('Y-m-d');
+        try {
+            $start_date = $startDate->format('Y-m-d');
+            $end_date   = $endDate->format('Y-m-d');
 
-        $data = $this->appointmentsRepository->getCalendarAppointments($start_date, $end_date);
-        $appointments = array();
+            $data = $this->appointmentsRepository->getCalendarAppointments($start_date, $end_date);
+            $appointments = array();
 
-        foreach($data as $d) {
-            array_push($appointments, array(
-                'id' => $this->uuidBinaryToString($d['uuid']),
-                'title' => $d['paciente'] . ' - ' . $d['asunto'],
-                'start' => $d['fecha'].'T'.$this->minutesToTime($d['h_inicio']).':00',
-                'end' => $d['fecha'].'T'.$this->minutesToTime($d['h_fin']).':00',
-                'extendedProps' => [
-                    'paciente' => $d['paciente'],
-                    'asunto' => $d['asunto'],
-                ],
-            ));
+            foreach($data as $d) {
+                array_push($appointments, array(
+                    'id' => $this->uuidBinaryToString($d['uuid']),
+                    'title' => $d['paciente'] . ' - ' . $d['asunto'],
+                    'start' => $d['fecha'].'T'.$this->minutesToTime($d['h_inicio']).':00',
+                    'end' => $d['fecha'].'T'.$this->minutesToTime($d['h_fin']).':00',
+                    'className' => $d['classname'] ?? 'primary',
+                    'backgroundColor' => $d['background'] ?? '#EAEAEA',
+                    'borderColor' => $d['text_color'] ?? '#000000',
+                    'textColor' => $d['text_color'] ?? '#FFFFFF',
+                    'extendedProps' => [
+                        'patient' => $d['paciente'],
+                        'patient_code' => $d['clave_paciente'] ?? '',
+                        'appointment_type' => $d['asunto'],
+                        'description' => $d['motivo_consulta'] ?? '',
+                        'dob' => $d['f_nacimiento'] ?? '',
+                        'age' => $d['f_nacimiento'] ? $this->calculateAge($d['f_nacimiento']) : '',
+                        'email' => $d['email'] ?? '',
+                        'phone' => $d['telefono'] ?? '',
+                        'gender' => $d['genero'] ?? '',
+                    ],
+                ));
+            }
+
+            return $appointments;
+        } catch (\Throwable $e) {
+            throw $e;
         }
-
-        return $appointments;
     }
 
     public function calculateAppointmentAvailability($date, $procedures): array {

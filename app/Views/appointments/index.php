@@ -3,6 +3,7 @@
     $section = "Agenda";
 
     require_once __DIR__.'/../layout/title.php';
+    require_once __DIR__.'/calendar_modal.php';
 ?>
 
             <!-- Responsive Toggler -->
@@ -22,44 +23,17 @@
                         </button>
                         <!-- Mini calendar -->
                         <div class="mb-[25px]">
-                           <div class="[&>div]:w-full max-4xl:border-1 max-4xl:border-regular max-4xl:dark:border-box-dark-up max-4xl:rounded-6" id="mini-datepicker" data-date="10/24/2023"></div>
+                           <div class="mini-datepicker [&>div]:w-full max-4xl:border-1 max-4xl:border-regular max-4xl:dark:border-box-dark-up max-4xl:rounded-6" id="mini-calendario" data-date="<?php echo date('d/m/Y'); ?>"></div>
                         </div>
                         <!-- Calendar Events -->
                         <div class="bg-white max-4xl:border-1 max-4xl:border-regular max-4xl:dark:border-box-dark-up dark:bg-box-dark rounded-10 p-[25px]">
                            <div class="flex items-center justify-between mb-[18px] text-dark dark:text-title-dark">
                               <h3 class="font-medium text-[18px] text-dark dark:text-title-dark">
-                                 My Calendars
+                                 Estatus de Cita
                               </h3>
                            </div>
-                           <ul>
-                              <li class="flex items-center mb-[10px]">
-                                 <span class="relative flex items-center text-sm capitalize before:-translate-y-2/4 before:absolute before:bg-primary before:h-2 before:rounded-full before:top-1/2 before:w-2 dark:text-subtitle-dark ltr:before:left-0 ps-4 rtl:before:right-0 text-body">family
-                                    event</span>
-                              </li>
-                              <li class="flex items-center mb-[10px]">
-                                 <span class="relative flex items-center text-sm capitalize before:-translate-y-2/4 before:absolute before:bg-secondary before:h-2 before:rounded-full before:top-1/2 before:w-2 dark:text-subtitle-dark ltr:before:left-0 ps-4 rtl:before:right-0 text-body">product
-                                    launch</span>
-                              </li>
-                              <li class="flex items-center mb-[10px]">
-                                 <span class="relative flex items-center text-sm capitalize before:-translate-y-2/4 before:absolute before:bg-success before:h-2 before:rounded-full before:top-1/2 before:w-2 dark:text-subtitle-dark ltr:before:left-0 ps-4 rtl:before:right-0 text-body">team
-                                    meeting</span>
-                              </li>
-                              <li class="flex items-center mb-[10px]">
-                                 <span class="relative flex items-center text-sm capitalize before:-translate-y-2/4 before:absolute before:bg-info before:h-2 before:rounded-full before:top-1/2 before:w-2 dark:text-subtitle-dark ltr:before:left-0 ps-4 rtl:before:right-0 text-body">ui/ux
-                                    design team</span>
-                              </li>
-                              <li class="flex items-center mb-[10px]">
-                                 <span class="relative flex items-center text-sm capitalize before:-translate-y-2/4 before:absolute before:bg-danger before:h-2 before:rounded-full before:top-1/2 before:w-2 dark:text-subtitle-dark ltr:before:left-0 ps-4 rtl:before:right-0 text-body">Project
-                                    update</span>
-                              </li>
-                              <li class="flex items-center mb-[10px]">
-                                 <span class="relative flex items-center text-sm capitalize before:-translate-y-2/4 before:absolute before:bg-warning before:h-2 before:rounded-full before:top-1/2 before:w-2 dark:text-subtitle-dark ltr:before:left-0 ps-4 rtl:before:right-0 text-body">Friends
-                                    reunion</span>
-                              </li>
-                              <li class="flex items-center mb-[10px]">
-                                 <span class="relative flex items-center text-sm capitalize before:-translate-y-2/4 before:absolute before:bg-primary before:h-2 before:rounded-full before:top-1/2 before:w-2 dark:text-subtitle-dark ltr:before:left-0 ps-4 rtl:before:right-0 text-body">Development
-                                    meeting</span>
-                              </li>
+                           <ul id="sector-estatus">
+                                
                            </ul>
                         </div>
                      </div>
