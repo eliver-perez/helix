@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Database;
 use App\Repositories\ConsentTemplatesRepository;
+use App\Repositories\TemplatesStatusRepository;
 use App\Services\ConsentTemplatesService;
 use Throwable;
 
@@ -23,8 +24,9 @@ class ConsentTemplatesController extends Controller
         $conn = $database->getConnection();
 
         $consentTemplatesRepository = new ConsentTemplatesRepository($conn);
+        $templatesStatusRepository = new TemplatesStatusRepository($conn);
 
-        return new ConsentTemplatesService($consentTemplatesRepository);
+        return new ConsentTemplatesService($consentTemplatesRepository, $templatesStatusRepository);
     }
 
     private function getRepository(): ConsentTemplatesRepository {
@@ -104,13 +106,25 @@ class ConsentTemplatesController extends Controller
             $template = $service->getTemplate([
                 'uuid'                      => $id,
             ]);
-            // die(var_dump($template));
 
             return $response->json([
                 'status' => 'OK',
                 'message' => 'Datos de Plantilla.',
                 'data' => [
-                    'template' => $template
+                    'uuid'                      => $id,
+                    'code'                      => $template['codigo'],
+                    'name'                      => $template['nombre'],
+                    'version'                   => $template['version'],
+                    'status_code'               => $template['estatus_codigo'],
+                    'status'                    => $template['estatus'],
+                    'logo'                      => $template['logo'],
+                    'logo_width'                => $template['logo_width'],
+                    'line_spacing'              => $template['interlineado'],
+                    'font_size'                 => $template['font_size'],
+                    'registered_by'             => $template['registro'],
+                    'delta'                     => $template['delta'],
+                    'registered_date'           => $template['f_registro'],
+                    'updated_date'              => $template['f_actualizacion'],
                 ]
             ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
@@ -159,7 +173,106 @@ class ConsentTemplatesController extends Controller
         } catch (Throwable $e) {
             return $response->json([
                 'status' => 'ERROR',
-                // 'message' => 'No fue posible registrar el personal.'
+                // 'message' => 'No fue posible actualizar la plantilla.'
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function preview(Request $request, Response $response) {
+        try {
+            $service = $this->getService();
+
+            $pdfContent = $service->previewPdf([
+                'delta'             => $request->input('delta', ''),
+                'font_size'         => $request->input('font_size', 9),
+                'line_height'       => $request->input('line_height', 1.2),
+
+                'logo'              => $_FILES['logo'] ?? null,
+                'logo_width'        => $request->input('logo_width', 35),
+            ]);
+
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="preview-consentimiento.pdf"');
+            header('Content-Length: ' . strlen($pdfContent));
+
+            echo $pdfContent;
+            exit;
+
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'status' => 'ERROR',
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'status' => 'ERROR',
+                'message' => 'Error al generar la vista previa del consentimiento.'
+            ], 500);
+        }
+    }
+
+    public function status(Request $request, Response $response, string $id) {
+        try {
+            $service = $this->getService();
+
+            $data = $service->getTemplateStatus([
+                'uuid'              => $id,
+            ]);
+
+            return $response->json([
+                'status' => 'OK',
+                'message' => 'Estatus de Plantilla.',
+                'data' => [
+                    'uuid'                      => $id,
+                    'code'                      => $data['codigo'] ?? '',
+                    'status'                    => $data['estatus'] ?? '',
+                ]
+            ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'status' => 'ERROR',
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'status' => 'ERROR',
+                'message' => 'Error al generar la vista previa del consentimiento.'
+            ], 500);
+        }
+    }
+
+    public function activate(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+
+            $service->activate([
+                'uuid'                      => $id,
+                'uid'                       => $currentUserId,
+            ]);
+
+            return $response->json([
+                'status' => 'OK',
+                'message' => 'Plantilla activada correctamente.',
+                'data' => [
+                    'uuid'                  => $id
+                ]
+            ], 201);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'status' => 'ERROR',
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'status' => 'ERROR',
+                // 'message' => 'No fue posible activar la plantilla.'
                 'message' => $e->getMessage()
             ], 500);
         }

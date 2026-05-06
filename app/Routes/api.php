@@ -72,6 +72,11 @@ $router->post('/api/consent-templates', [ConsentTemplatesController::class, 'sto
 $router->get('/api/consent-templates/{id}', [ConsentTemplatesController::class, 'show']);
 $router->put('/api/consent-templates/{id}', [ConsentTemplatesController::class, 'update']);
 
+$router->post('/api/consent-templates/preview', [ConsentTemplatesController::class, 'preview']);
+
+$router->get('/api/consent-templates/{id}/status', [ConsentTemplatesController::class, 'status']);
+$router->put('/api/consent-templates/{id}/activate', [ConsentTemplatesController::class, 'activate']);
+
 /**
  * APPOINTMENTS TYPE ROUTES
  */

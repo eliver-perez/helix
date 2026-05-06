@@ -13,6 +13,8 @@ function InitializeValues(home) {
 		}
 	});
 	$('#btn-guardar-cambios').on('click', UpdateTemplate);
+	$('#btn-visualizar-plantilla').on('click', PreviewTemplate);
+	$('#btn-plantilla-activar').on('click', StartTemplateActivation);
 	SetupEditor();
 	GetTemplates();
 }
@@ -72,11 +74,86 @@ function SetupEditor() {
 			toolbar: {
 				container: '#toolbar',
 				handlers: {
-					'convenio': function () {
-						insertarVariable(this.quill, 'no_convenio', 'NO. CONVENIO');
+					'clinica': function () {
+						insertarVariable(this.quill, 'clinica', 'CLINICA');
 					},
-					'organismo': function () {
-						insertarVariable(this.quill, 'organismo', 'ORGANISMO');
+					'domicilio-clinica': function () {
+						insertarVariable(this.quill, 'domicilio-clinica', 'DOMICILIO DE LA CLINICA');
+					},
+					'telefono-clinica': function () {
+						insertarVariable(this.quill, 'telefono-clinica', 'TELEFONO DE LA CLINICA');
+					},
+					'email-clinica': function () {
+						insertarVariable(this.quill, 'email-clinica', 'EMAIL DE LA CLINICA');
+					},
+					'paciente-nombre': function () {
+						insertarVariable(this.quill, 'paciente-nombre', 'NOMBRE DE PACIENTE');
+					},
+					'paciente-edad': function () {
+						insertarVariable(this.quill, 'paciente-edad', 'EDAD DE PACIENTE');
+					},
+					'paciente-fecha-nacimiento': function () {
+						insertarVariable(this.quill, 'paciente-fecha-nacimiento', 'FECHA DE NACIMIENTO DE PACIENTE');
+					},
+					'paciente-sexo': function () {
+						insertarVariable(this.quill, 'paciente-sexo', 'SEXO DE PACIENTE');
+					},
+					'paciente-domicilio': function () {
+						insertarVariable(this.quill, 'paciente-domicilio', 'DOMICILIO DE PACIENTE');
+					},
+					'paciente-telefono': function () {
+						insertarVariable(this.quill, 'paciente-telefono', 'TELEFONO DE PACIENTE');
+					},
+					'responsable-nombre': function () {
+						insertarVariable(this.quill, 'responsable-nombre', 'NOMBRE DE RESPONSABLE');
+					},
+					'responsable-parentesco': function () {
+						insertarVariable(this.quill, 'responsable-parentesco', 'PARENTESCO DE RESPONSABLE');
+					},
+					'responsable-telefono': function () {
+						insertarVariable(this.quill, 'responsable-telefono', 'TELEFONO DE RESPONSABLE');
+					},
+					'fecha': function () {
+						insertarVariable(this.quill, 'fecha', 'FECHA');
+					},
+					'hora': function () {
+						insertarVariable(this.quill, 'hora', 'HORA');
+					},
+					'procedimiento': function () {
+						insertarVariable(this.quill, 'procedimiento', 'PROCEDIMIENTO');
+					},
+					'profesional': function () {
+						insertarVariable(this.quill, 'profesional', 'PROFESIONAL');
+					},
+					'cedula-profesional': function () {
+						insertarVariable(this.quill, 'cedula-profesional', 'CEDULA PROFESIONAL');
+					},
+					'diagnostico': function () {
+						insertarVariable(this.quill, 'diagnostico', 'DIAGNOSTICO');
+					},
+					'observaciones': function () {
+						insertarVariable(this.quill, 'observaciones', 'OBSERVACIONES');
+					},
+					'riesgos': function () {
+						insertarVariable(this.quill, 'riesgos', 'RIESGOS');
+					},
+					'beneficios': function () {
+						insertarVariable(this.quill, 'beneficios', 'BENEFICIOS');
+					},
+					'alternativas': function () {
+						insertarVariable(this.quill, 'alternativas', 'ALTERNATIVAS');
+					},
+					'cuidados-posteriores': function () {
+						insertarVariable(this.quill, 'cuidados-posteriores', 'CUIDADOS POSTERIORES');
+					},
+					'firma-paciente': function () {
+						insertarVariable(this.quill, 'firma-paciente', 'FIRMA DE PACIENTE');
+					},
+					'firma-responsable': function () {
+						insertarVariable(this.quill, 'firma-responsable', 'FIRMA DE RESPONSABLE');
+					},
+					'firma-profesional': function () {
+						insertarVariable(this.quill, 'firma-profesional', 'FIRMA DE PROFESIONAL');
 					},
 				}
 			}
@@ -99,23 +176,23 @@ function GetTemplates() {
 		dataType: "json",
 		success: function(response) {
 			$.each(response.data.templates, function(k, v) {
-				$('#table-templates').find('tbody').append(`<tr onclick="javascript:SelectTemplate('${v.id}');" class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
-													<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														<span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.template_name}</span>
-													</td>
-													<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${v.version}
-													</td>
-													<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${v.status}
-													</td>
-													<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${v.registered_by}
-													</td>
-													<td class="px-4 py-2.5 font-normal last:text-start capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${v.registered_date}
-													</td>
-												</tr>`)
+				$('#table-templates').find('tbody').append(`<tr id="tr-template-${v.id}" onclick="javascript:SelectTemplate('${v.id}');" class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
+																<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																	<span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.template_name}</span>
+																</td>
+																<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																	${v.version}
+																</td>
+																<td class="td-template-status px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																	${v.status}
+																</td>
+																<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																	${v.registered_by}
+																</td>
+																<td class="px-4 py-2.5 font-normal last:text-start capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																	${v.registered_date}
+																</td>
+															</tr>`);
 			});
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -139,18 +216,24 @@ function SelectTemplate(id) {
 			success: function(response) {
 				if($('#accordion-sector-datos-generales').find('button').attr('aria-expanded') === 'false')
 					$('#accordion-sector-datos-generales').find('button').trigger('click');
-				$('#field-codigo').val(response.data.template.codigo);
-				$('#field-nombre').val(response.data.template.nombre);
-				$('#field-version').val(response.data.template.version);
-				$('#field-estatus').val(response.data.template.estatus);
-				$('#field-fecha-actualizado').val(response.data.template.f_actualizacion);
-				$('#field-fecha-registrado').val(response.data.template.f_registro);
-				$('#field-registro').val(response.data.template.registro);
-				if(response.data.template.estatus_codigo == 'borrador')
+				$('#field-codigo').val(response.data.code);
+				$('#field-nombre').val(response.data.name);
+				$('#field-version').val(response.data.version);
+				$('#field-estatus').val(response.data.status);
+				$('#field-fecha-actualizado').val(response.data.updated_date);
+				$('#field-fecha-registrado').val(response.data.registered_date);
+				$('#field-registro').val(response.data.registered_by);
+				loadFilePreview(`${homeURL}/../storage/templates/consents/${response.data.uuid}/${response.data.logo}`, response.data.logo, true);
+				if(response.data.status_code == 'borrador')
 					$('#btn-guardar-cambios').removeClass('!visible hidden');
+
+				if(response.data.status_code == 'activo')
+					$('#btn-plantilla-activar').attr('disabled', true);
+				else
+					$('#btn-plantilla-activar').attr('disabled', false);
 				
 				$('#btn-visualizar-plantilla').attr('disabled', false);
-				template.setContents(JSON.parse(response.data.template.delta));
+				template.setContents(JSON.parse(response.data.delta));
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) { 
 				console.log('STATUS:', textStatus);
@@ -229,6 +312,9 @@ function ClearTemplateData() {
 	$('#field-fecha-registrado').val('');
 	$('#field-fecha-actualizado').val('');
 	$('#field-registro').val('');
+	$('#file-logo').val('');
+	$('#file-logo').trigger('change');
+	template.setContents(JSON.parse('[]'));
 	$('#btn-visualizar-plantilla').attr('disabled', true);
 	if(!$('#btn-guardar-cambios').hasClass('hidden'))
 		$('#btn-guardar-cambios').addClass('!visible hidden');
@@ -253,6 +339,9 @@ function UpdateTemplate() {
 		const delta = template.getContents();
     	const logo = document.getElementById('file-logo').files[0] || null;
 		
+		if (logo) {
+			formData.append('file-logo', logo);
+		}
 		formData.append('template_html', html);
 		formData.append('template_delta', JSON.stringify(delta));
 		formData.append('_method', 'PUT');
@@ -280,4 +369,103 @@ function UpdateTemplate() {
 			}  
 		});
 	}
+}
+
+async function loadFilePreview(filepath, filename, loadPreview = false) {
+	const res = await fetch(filepath);
+	const blob = await res.blob();
+
+	const file = new File([blob], filename, { type: blob.type });
+	const dt = new DataTransfer();
+	dt.items.add(file);
+
+	const input = document.getElementById('file-logo');
+
+	input.files = dt.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+	if(loadPreview)
+		PreviewTemplate();
+}
+
+function PreviewTemplate() {
+	const delta = template.getContents();
+    const form = document.getElementById('form-preview-template');
+
+    $('#preview-template').val(template.root.innerHTML);
+    $('#preview-delta').val(JSON.stringify(delta));
+
+    form.action = `${homeURL}/api/consent-templates/preview`;
+    form.submit();
+}
+
+function StartTemplateActivation() {
+	if(selected_template != '') {
+		$.ajax({
+			url: `${homeURL}/api/consent-templates/${selected_template}/status`,
+			type: 'get',
+			dataType: "json",
+			success: function(response) {
+				if(response.data.code == 'borrador') {
+					ShowSweetAlertConfirmCancelCallback('info', 'Activar Plantilla', 'Cuando la plantilla cambie de borrador a activa no será posible volver hacer cambios.', 'Activar', 'Cancelar', (r) => { if(r.isConfirmed) ActivateTemplate(response.data.uuid) });
+				} else if(response.data.code == 'inactivo') {
+					ActivateTemplate(response.data.uuid);
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) { 
+				console.log('STATUS:', textStatus);
+				console.log('ERROR:', errorThrown);
+				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
+
+				alert(XMLHttpRequest.responseText);
+			}  
+		});
+	}
+}
+
+function ActivateTemplate(id) {
+	var formData = new FormData();
+	formData.append('id', id);
+
+	$.ajax({
+		url: `${homeURL}/api/consent-templates/${selected_template}/activate`,
+		type: 'put',
+		data: formData,
+		processData: false,
+		contentType: false,
+		dataType: "json",
+		success: function(response) {
+			const statuses = document.querySelectorAll('.td-template-status');
+
+			statuses.forEach(status => {
+				if (status.textContent.trim().toLowerCase() !== 'borrador') {
+					status.textContent = 'Inactivo';
+				}
+			});
+
+			const template_row = document.getElementById(`tr-template-${response.data.uuid}`);
+
+			if (template_row) {
+				const status = template_row.querySelector('.td-template-status');
+
+				if (status) {
+					status.textContent = 'Activo';
+				}
+			}
+			
+			if(!$('#btn-guardar-cambios').hasClass('hidden'))
+				$('#btn-guardar-cambios').addClass('!visible hidden');
+			
+			$('#btn-plantilla-activar').attr('disabled', true);
+
+			ShowToastMessage('Plantilla activada con exito', 'success');
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			console.log('STATUS:', textStatus);
+			console.log('ERROR:', errorThrown);
+			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
+
+			alert(XMLHttpRequest.responseText);
+		}  
+	});
 }

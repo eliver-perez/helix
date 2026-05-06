@@ -22,6 +22,20 @@
 			}).then(callback);
 		}
 		
+		function ShowSweetAlertConfirmCancelCallback(type, title, message, confirmButton, cancelButton, callback) {
+			Swal.fire({
+				title: title,
+				text: message,
+				icon: type,
+				padding: '2em',
+				showCloseButton: true,
+				showCancelButton: true,
+				confirmButtonText: confirmButton,
+				cancelButtonText: cancelButton,
+				cancelButtonColor: "#d33",
+			}).then(callback);
+		}
+		
 		function ShowToastMessage(message, type) {
 			Swal.fire({
 				toast: true,

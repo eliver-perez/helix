@@ -1,16 +1,3 @@
-CREATE TABLE ajustes_tipo (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
-    codigo                          VARCHAR(15) NOT NULL UNIQUE,
-    tipo                            VARCHAR(25) NOT NULL
-);
-
-INSERT INTO ajustes_tipo(codigo, tipo) VALUES('int', 'Entero'),
-                                                    ('float', 'Float'),
-                                                    ('money', 'Money'),
-                                                    ('string', 'String'),
-                                                    ('json', 'JSON'),
-                                                    ('boolean', 'Boolean');
-
 CREATE TABLE tipos_datos (
     id              TINYINT AUTO_INCREMENT PRIMARY KEY,
     codigo          VARCHAR(20) NOT NULL UNIQUE,
@@ -24,6 +11,19 @@ INSERT INTO tipos_datos(codigo, tipo) VALUES('int', 'Entero'),
                                                     ('money', 'Dinero'),
                                                     ('date', 'Fecha'),
                                                     ('datetime', 'Fecha y Hora');
+                                                    
+CREATE TABLE ajustes_tipo (
+    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(15) NOT NULL UNIQUE,
+    tipo                            VARCHAR(25) NOT NULL
+);
+
+INSERT INTO ajustes_tipo(codigo, tipo) VALUES('int', 'Entero'),
+                                                    ('float', 'Float'),
+                                                    ('money', 'Money'),
+                                                    ('string', 'String'),
+                                                    ('json', 'JSON'),
+                                                    ('boolean', 'Boolean');
 
 CREATE TABLE ajustes_categoria (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -52,6 +52,7 @@ CREATE TABLE ajustes (
 
 CREATE INDEX idx_ajustes_categoria ON ajustes(categoria);
 
+INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('clinica', 'Nombre de la Clinica.', 'gLa Podología', 'Podología', 1, 4, NOW());
 INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('codigo_paciente', 'Codigo para la clave de pacientes.', 'PE', 'PE', 1, 4, NOW());
 INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('codigo_cliente', 'Codigo para la clave de clientes.', 'CE', 'CE', 1, 4, NOW());
 INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('agenda_intervalo_minutos', 'Intervalo de tiempo en minutos para busqueda de bloques de citas', '15', '15', 2, 1, NOW());
@@ -985,9 +986,9 @@ CREATE TABLE plantillas_estatus (
     estatus                         VARCHAR(60) NOT NULL
 );
 
-INSERT INTO plantillas_estatus(id, codigo, estatus) VALUES(1, 'borrador', 'Borrador'),
-                                                            (2, 'publicado', 'Publicado'),
-                                                            (3, 'cancelado', 'Cancelado');
+INSERT INTO plantillas_estatus(codigo, estatus) VALUES('borrador', 'Borrador'),
+                                                            ('activo', 'Activo'),
+                                                            ('inactivo', 'Inactivo');
 
 CREATE TABLE consentimientos_plantillas_variables (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,

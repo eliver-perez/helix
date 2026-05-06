@@ -2,7 +2,9 @@
     "name": "helix/erp",
     "description": "Software ERP para clinicas",
     "type": "project",
-    "require": {},
+    "require": {
+        "tecnickcom/tcpdf": "^6.11"
+    },
     "autoload": {
         "psr-4": {
             "App\\": "app/"

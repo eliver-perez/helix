@@ -659,6 +659,7 @@ body {
 }
 
 .collapsed>ul>li:hover .sub-item {
+  z-index: 1000;
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
@@ -667,6 +668,7 @@ body {
 
 @media (min-width: 1199px) {
   .collapsed>ul>li:hover .sub-item {
+    z-index: 1000;
     position: fixed !important;
     inset-inline-start: 65px;
     z-index: 9999;

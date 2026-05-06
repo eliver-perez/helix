@@ -189,29 +189,36 @@
                                     </span>
                                 </button>
                             </h2>
-                            <div id="accordion-logotipo" class="!visible hidden" data-te-collapse-item aria-labelledby="accordion-sector-logotipo" data-te-parent="#accordion-datos-plantillas">
-                                <div class="ssm:grid ssm:grid-cols-12 max-ssm:flex-col max-ssm:flex gap-[5px] py-2 px-4">
-                                    <div class="col-span-12">
-                                        <label class="flex w-full cursor-pointer overflow-hidden rounded border border-gray-200 bg-white text-sm text-gray-400">
-                                            <span id="file-logo-name" class="flex-1 px-4 py-3">
-                                                Logotipo
-                                            </span>
+                            <form id="form-preview-template"
+                                    method="POST"
+                                    enctype="multipart/form-data"
+                                    target="template-preview">
+                                <input type="hidden" name="template" id="preview-template">
+                                <input type="hidden" name="delta" id="preview-delta">
+                                <div id="accordion-logotipo" class="!visible hidden" data-te-collapse-item aria-labelledby="accordion-sector-logotipo" data-te-parent="#accordion-datos-plantillas">
+                                    <div class="ssm:grid ssm:grid-cols-12 max-ssm:flex-col max-ssm:flex gap-[5px] py-2 px-4">
+                                        <div class="col-span-12">
+                                            <label class="flex w-full cursor-pointer overflow-hidden rounded border border-gray-200 bg-white text-sm text-gray-400">
+                                                <span id="file-logo-name" class="flex-1 px-4 py-3">
+                                                    Logotipo
+                                                </span>
 
-                                            <span class="border-l border-gray-200 px-6 py-3 text-gray-500 hover:bg-gray-50">
-                                                Buscar
-                                            </span>
+                                                <span class="border-l border-gray-200 px-6 py-3 text-gray-500 hover:bg-gray-50">
+                                                    Buscar
+                                                </span>
 
-                                            <input 
-                                                type="file" 
-                                                name="archivo" 
-                                                id="file-logo" 
-                                                class="hidden"
-                                                onchange="document.getElementById('file-logo-name').textContent = this.files[0]?.name || 'Buscar'"
-                                            >
-                                        </label>
+                                                <input 
+                                                    type="file" 
+                                                    name="logo" 
+                                                    id="file-logo" 
+                                                    class="hidden"
+                                                    onchange="document.getElementById('file-logo-name').textContent = this.files[0]?.name || 'Buscar'"
+                                                >
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -246,13 +253,113 @@
                             </svg>
                         </button>
                         <ul class="absolute z-[1000] ltr:float-left rtl:float-right pb-2 m-0 hidden min-w-max list-none overflow-hidden rounded-lg border-none bg-white bg-clip-padding text-left text-base shadow-lg dark:shadow-boxLargeDark dark:bg-box-dark-down [&[data-te-dropdown-show]]:block opacity-100" aria-labelledby="basic" data-te-dropdown-menu-ref>
-                            <li class="ql-convenio">
-                                <button class="ql-convenio text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
-                                No. Convenio</button>
+                            <li>
+                                <button class="ql-clinica text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Clínica</button>
                             </li>
-                            <li class="ql-organismo">
-                                <button class="ql-organismo text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
-                                Item 2</button>
+                            <li>
+                                <button class="ql-domicilio-clinica text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Domicilio de la Clínica</button>
+                            </li>
+                            <li>
+                                <button class="ql-telefono-clinica text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Teléfono de la Clínica</button>
+                            </li>
+                            <li>
+                                <button class="ql-email-clinica text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                E-Mail de la Clínica</button>
+                            </li>
+                            <li>
+                                <button class="ql-paciente-nombre text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Nombre del Paciente</button>
+                            </li>
+                            <li>
+                                <button class="ql-paciente-edad text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Edad del Paciente</button>
+                            </li>
+                            <li>
+                                <button class="ql-paciente-fecha-nacimiento text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Fecha de Nacimiento del Paciente</button>
+                            </li>
+                            <li>
+                                <button class="ql-paciente-sexo text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Sexo del Paciente</button>
+                            </li>
+                            <li>
+                                <button class="ql-paciente-domicilio text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Domicilio del Paciente</button>
+                            </li>
+                            <li>
+                                <button class="ql-paciente-telefono text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Teléfono del Paciente</button>
+                            </li>
+                            <li>
+                                <button class="ql-responsable-nombre text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Nombre del Responsable</button>
+                            </li>
+                            <li>
+                                <button class="ql-responsable-parentesco text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Parentesco con Responsable</button>
+                            </li>
+                            <li>
+                                <button class="ql-responsable-telefono text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Teléfono de Responsable</button>
+                            </li>
+                            <li>
+                                <button class="ql-fecha text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Fecha</button>
+                            </li>
+                            <li>
+                                <button class="ql-hora text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Hora</button>
+                            </li>
+                            <li>
+                                <button class="ql-procedimiento text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Procedimiento</button>
+                            </li>
+                            <li>
+                                <button class="ql-profesional text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Profesional</button>
+                            </li>
+                            <li>
+                                <button class="ql-cedula-profesional text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Cedula Profesional</button>
+                            </li>
+                            <li>
+                                <button class="ql-diagnostico text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Diagnostico</button>
+                            </li>
+                            <li>
+                                <button class="ql-observaciones text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Observaciones</button>
+                            </li>
+                            <li>
+                                <button class="ql-riesgos text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Riesgos</button>
+                            </li>
+                            <li>
+                                <button class="ql-beneficios text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Beneficios</button>
+                            </li>
+                            <li>
+                                <button class="ql-alternativas text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Alternativas</button>
+                            </li>
+                            <li>
+                                <button class="ql-cuidados-posteriores text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Cuidados Posteriores</button>
+                            </li>
+                            <li>
+                                <button class="ql-firma-paciente text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Firma de Paciente</button>
+                            </li>
+                            <li>
+                                <button class="ql-firma-responsable text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Firma de Responsable</button>
+                            </li>
+                            <li>
+                                <button class="ql-firma-profesional text-[12px] block px-4 py-1 font-normal capitalize bg-transparent whitespace-nowrap hover:bg-primary/10 hover:text-primary dark:hover:text-title-dark active:no-underline" style="float: none; width: auto! important; padding: 5px 10px;" href="#" data-te-dropdown-item-ref>
+                                Firma de Profesional</button>
                             </li>
                         </ul>
                     </div>
@@ -275,6 +382,23 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    
+
+    <div class="2xl:col-span-5 col-span-12">
+        <div class="bg-white dark:bg-box-dark m-0 p-0 text-body dark:text-subtitle-dark text-[15px] rounded-10 relative h-full">
+            <div class="px-[25px] text-dark dark:text-title-dark font-medium text-[17px] max-sm:h-auto max-sm:mb-[15px]">
+                <div class="mb-0 pt-[15px] pb-[0px] overflow-hidden whitespace-nowrap text-ellipsis text-[18px] font-semibold text-dark dark:text-title-dark  capitalize">
+                    Previsualizacion
+                </div>
+                <div class="text-gray-600 text-[12px] font-normal">Visualiza La Plantilla Con Los Cambios Realizados.</div>
+            </div>
+
+            <div class="row g-5">
+                <iframe id="template-preview" name="template-preview" width="90%" style="margin: 0 auto; height: 85vh;"></iframe>
+            </div>
         </div>
     </div>
 </div>

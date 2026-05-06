@@ -39,16 +39,18 @@ class ConsentTemplatesRepository {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-
-    public function getTemplate($uuid): ?array
-    {
+    public function getTemplate($uuid): ?array {
         $stmt = $this->db->prepare("
-            SELECT 
+            SELECT
                 cp.codigo,
                 cp.nombre,
                 cp.version,
                 pe.codigo estatus_codigo,
                 pe.estatus,
+                cp.logo,
+                cp.logo_width,
+                cp.interlineado,
+                cp.font_size,
                 u.nombre registro,
                 CASE WHEN pe.codigo = 'borrador'
                     THEN cp.delta_borrador
@@ -62,7 +64,7 @@ class ConsentTemplatesRepository {
                 INNER JOIN usuarios u
                     ON cp.registro = u.id
             WHERE cp.uuid = :uuid
-            ORDER BY cp.f_registro ASC
+            LIMIT 1
         ");
 
         $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
@@ -71,6 +73,24 @@ class ConsentTemplatesRepository {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row ?: null;
+    }
+
+    public function getTemplateStatus($uuid): ?array {
+        $stmt = $this->db->prepare("
+            SELECT
+                pe.codigo,
+                pe.estatus
+            FROM consentimientos_plantillas cp
+                INNER JOIN plantillas_estatus pe
+                    ON cp.estatus = pe.id
+            WHERE cp.uuid = :uuid
+            LIMIT 1
+        ");
+
+        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function existsById(int $id): bool
@@ -183,11 +203,59 @@ class ConsentTemplatesRepository {
     public function update(array $data): void {
         $stmt = $this->db->prepare("UPDATE consentimientos_plantillas
                                             SET documento_borrador = :html,
-                                                delta_borrador = :delta
+                                                delta_borrador = :delta,
+                                                logo = :logo,
+                                                logo_checksum = :logo_checksum
                                             WHERE uuid = :uuid");
         $stmt->bindValue(':html', $data['template_html'], PDO::PARAM_STR);
         $stmt->bindValue(':delta', $data['template_delta'], PDO::PARAM_STR);
+        $stmt->bindValue(':logo', $data['logo'], PDO::PARAM_STR);
+        $stmt->bindValue(':logo_checksum', $data['logo_checksum'], PDO::PARAM_STR);
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->execute();
+    }
+
+    public function getClinicName(): string {
+        $stmt = $this->db->prepare("SELECT valor FROM ajustes WHERE id = 'clinica'");
+        $stmt->execute();
+        return (string)$stmt->fetchColumn();
+    }
+
+    public function getTemplateLogo($data) {
+        $stmt = $this->db->prepare("
+            SELECT logo, logo_checksum
+                    FROM consentimientos_plantillas
+                    WHERE uuid = :uuid
+                    LIMIT 1
+        ");
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function deactivateAll($data) {
+        $stmt = $this->db->prepare("
+            UPDATE consentimientos_plantillas
+                SET estatus = :inactive
+                WHERE estatus = :active
+        ");
+        $stmt->execute([
+            'inactive'              => $data['inactive_id'],
+            'active'                => $data['active_id'],
+        ]);
+    }
+
+    public function activate($data) {
+        $stmt = $this->db->prepare("
+            UPDATE consentimientos_plantillas
+                SET delta_json = delta_borrador,
+                    contenido_html = documento_borrador,
+                    estatus = :active
+                WHERE uuid = :uuid
+        ");
+        $stmt->execute([
+            'active'                => $data['active_id'],
+            'uuid'                  => $data['uuid'],
+        ]);
     }
 }
