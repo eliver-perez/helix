@@ -50,7 +50,7 @@ class PatientsController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
-            $repository = $this->getRepository();
+            $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
             
@@ -60,7 +60,7 @@ class PatientsController extends Controller
             $limit = max(1, min($limit, 50));
             $offset = max(0, $offset);
 
-            $data = $repository->getAll($search !== '' ? $search : null,
+            $data = $service->getAll($search !== '' ? $search : null,
                 $limit,
                 $offset
             );

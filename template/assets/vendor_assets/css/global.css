@@ -14,3 +14,29 @@
     border-radius: 50%;
     background-color: var(--dot-color, #000);
 }
+
+.div-editable {
+    display: block; /* Comportamiento nativo de bloque */
+    width: 300px;
+    min-height: 40px; /* Para que parezca un textarea inicial */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere; /* Rompe absolutamente cualquier texto largo */
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+.span-editable {
+    /* 1. Cambiar a inline-block para que acepte ancho */
+    display: inline-block; 
+    
+    /* 2. Definir el ancho máximo */
+    max-width: 300px; 
+    
+    /* 3. Forzar el salto de línea del texto */
+    word-wrap: break-word;      /* Para navegadores antiguos */
+    overflow-wrap: break-word; /* Estándar moderno */
+    
+    /* Opcional: Estilo visual para que el usuario sepa que es editable */
+    border: 1px dashed #ccc;
+    padding: 4px;
+}

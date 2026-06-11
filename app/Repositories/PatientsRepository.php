@@ -19,6 +19,7 @@ class PatientsRepository
         $sql = "
             SELECT
                 p.id,
+                p.uuid,
                 p.clave,
                 TRIM(
                     CONCAT(
@@ -71,6 +72,19 @@ class PatientsRepository
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getPatientId(string $uuid): ?int {
+        $stmt = $this->db->prepare("
+            SELECT id
+            FROM pacientes
+            WHERE uuid = :uuid
+            LIMIT 1");
+        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        return $id !== false ? (int) $id : null;
     }
 
     public function getRelationshipIdByCode(string $code): ?int {

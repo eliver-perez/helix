@@ -13,6 +13,9 @@ use App\Repositories\AppointmentsRepository;
 use App\Repositories\AppointmentsTypesRepository;
 use App\Repositories\BookingChannelsRepository;
 use App\Repositories\AppointmentsStatusRepository;
+use App\Repositories\PatientsRepository;
+use App\Repositories\StaffRepository;
+use App\Repositories\ProceduresRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\AppointmentsService;
 use InvalidArgumentException;
@@ -30,9 +33,12 @@ class AppointmentsController extends Controller
         $appointmentsTypeRepository = new AppointmentsTypesRepository($conn);
         $bookingChannelsRepository = new BookingChannelsRepository($conn);
         $appointmentsStatusRepository = new AppointmentsStatusRepository($conn);
+        $patientsRepository = new PatientsRepository($conn);
+        $staffRepository = new StaffRepository($conn);
+        $proceduresRepository = new ProceduresRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
 
-        return new AppointmentsService($appointmentsRepository, $appointmentsTypeRepository, $bookingChannelsRepository, $appointmentsStatusRepository, $settingsRepository);
+        return new AppointmentsService($appointmentsRepository, $appointmentsTypeRepository, $bookingChannelsRepository, $appointmentsStatusRepository, $patientsRepository, $staffRepository, $proceduresRepository, $settingsRepository);
     }
 
     private function getRepository(): AppointmentsRepository {
@@ -159,14 +165,12 @@ class AppointmentsController extends Controller
 
             $service = $this->getService();
 
-            $patient = (int)$request->input('patient', 0);
+            $patient = $request->input('patient', '');
             $appointment_type = (int)$request->input('appointment_type', 0);
             $booking_channel = (int)$request->input('booking_channel', 0);
             $appointmentRaw = $request->input('appointment', '[]');
             $appointment = json_decode((string)$appointmentRaw, true);
             $chief_complaint = trim((string)$this->request->input('chief_complaint', ''));
-
-            // die(var_dump($appointment));
 
             if (!is_array($appointment) || count($appointment) === 0 || $patient === 0 || $appointment_type === 0 || $booking_channel === 0) {
                 return $response->json([
@@ -200,6 +204,80 @@ class AppointmentsController extends Controller
         } catch (Throwable $e) {
             return $response->json([
                 'status' => 'ERROR',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function checkIn(Request $request, Response $response) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+            $appointment = $request->input('appointment', '');
+            $service->checkIn([
+                    'appointment'           => $appointment,
+                    'uid'                   => $currentUserId
+                ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Cita en espera.',
+                'data' => [
+                    'appointment' => $appointment
+                ]
+            ], 200);
+
+        } catch (InvalidArgumentException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function cancel(Request $request, Response $response) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+            $appointment = $request->input('appointment', '');
+            $service->cancel([
+                    'appointment'           => $appointment,
+                    'uid'                   => $currentUserId
+                ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Cita cancelada.',
+                'data' => [
+                    'appointment' => $appointment
+                ]
+            ], 200);
+
+        } catch (InvalidArgumentException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
                 'message' => $e->getMessage()
             ], 500);
         }

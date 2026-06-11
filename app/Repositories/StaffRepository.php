@@ -140,6 +140,19 @@ class StaffRepository
         return $row ?: null;
     }
 
+    public function getStaffId(string $uuid): ?int {
+        $stmt = $this->db->prepare("
+            SELECT id
+            FROM personal
+            WHERE uuid = :uuid
+            LIMIT 1");
+        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        return $id !== false ? (int) $id : null;
+    }
+
     public function insertStaff(array $data): int {
         $stmt = $this->db->prepare("
             INSERT INTO personal (

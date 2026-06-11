@@ -25,6 +25,34 @@ class PatientsService extends Service
     ) {
     }
 
+    public function getAll(?string $search = null, int $limit = 10, int $offset = 0): array {
+        try {
+            $data = $this->patientsRepository->getAll($search !== '' ? $search : null,
+                $limit,
+                $offset
+            );
+            $patients = array();
+
+            foreach($data as $d) {
+                array_push($patients, array(
+                    'id'                        => $this->uuidBinaryToString($d['uuid']),
+                    'code'                      => $d['clave'],
+                    'name'                      => $d['nombre'],
+                    'dob'                       => $d['f_nacimiento'],
+                    'gender'                    => $d['genero'],
+                    'phone'                     => $d['telefono'],
+                    'mobile'                    => $d['movil'],
+                    'registered_date'           => $d['f_registro'],
+                    'last_visit_date'           => $d['f_ultima_visita'],
+                ));
+            }
+
+            return $patients;
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
     public function create(array $data): ?array {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
 

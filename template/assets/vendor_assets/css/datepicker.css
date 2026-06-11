@@ -14,8 +14,15 @@
     padding-bottom: 4px;
     padding-top: 0;
 }
-.datepicker-picker {
+
+/* input[type="text"] ~ .datepicker-picker,
+.datepicker-dropdown .datepicker-picker {
     width: max-content !important;
+} */
+
+.datepicker-picker {
+    /* width: max-content !important; */
+    width: fit-content !important;
     min-width: 294px !important;
     background-color: #fff;
     border-radius: 4px;

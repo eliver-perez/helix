@@ -3,12 +3,22 @@
 var homeURL;
 
 var calendar = null;
+var selected_appointment = null;
+
+let modalElement = null;
+let calendarInstance = null;
+let appointmentData = null;
 
 function InitializeValues(home) {
 	homeURL = home;
-	$('#btn-registrar-paciente').on('click', function() {
+	if(action != '') {
+		callBackActions();
+	}
+	$('#btn-new-appointment').on('click', function() {
 		window.location.href = `${homeURL}/appointments/add`;
 	});
+	$('#btn-appointment-check-in').on('click', CheckInAppointment);
+	$('#btn-appointment-cancel').on('click', CancelAppointment);
 	document.addEventListener('click', function (e) {
 		if (e.target.closest('.e-info-close')) {
 			closeEventInfoModal();
@@ -23,10 +33,18 @@ function InitializeValues(home) {
 	SetCalendar();
 }
 
+function callBackActions() {
+	switch(action) {
+		case 'schedule-success':
+			ShowToastMessage('Cita agendada con exito.', 'success');
+			break;
+	}
+}
+
 function SetCalendar() {
-    calendar = document.getElementById("calendario-agenda");
-    if (calendar) {
-      var calendar = new FullCalendar.Calendar(calendar, {
+    calendarEl = document.getElementById("calendario-agenda");
+    if (calendarEl) {
+      calendarInstance = new FullCalendar.Calendar(calendarEl, {
         headerToolbar: {
           left: "today,prev,title,next",
           right: "timeGridDay,timeGridWeek,dayGridMonth,listMonth",
@@ -72,49 +90,50 @@ function SetCalendar() {
           document.querySelectorAll(".fc-list-day").forEach(function (item) {});
         },
         eventClick: function (infoEvent) {
-          	const modalElement = document.getElementById('e-info-modal');
+			const event = infoEvent.event;
+			appointmentData = event;
+
+			selected_appointment = event.id;
+
+          	modalElement = document.getElementById('e-info-modal');
 
 			modalElement.querySelector('.e-info-title').textContent =
-				infoEvent.event.title || '';
+				event.title || '';
 
-			// modalElement.querySelector('.e-info-date').textContent =
-			// 	infoEvent.event.start
-			// 		? infoEvent.event.start.toLocaleDateString('es-MX', {
-			// 			weekday: 'long',
-			// 			year: 'numeric',
-			// 			month: 'long',
-			// 			day: 'numeric'
-			// 		})
-			// 		: '';
 			modalElement.querySelector('.e-info-date').textContent =
-				infoEvent.event.start
-					? infoEvent.event.start.toLocaleDateString('es-MX', {
+				event.start
+					? event.start.toLocaleDateString('es-MX', {
 						year: 'numeric',
 						month: 'long',
 						day: 'numeric'
 					})
 					: '';
 
+			if(event.extendedProps.status == 'agendada' && modalElement.querySelector('.sec-check-in').classList.contains('hidden'))
+				modalElement.querySelector('.sec-check-in').classList.remove('hidden');
+			else if(event.extendedProps.status != 'agendada')
+				modalElement.querySelector('.sec-check-in').classList.add('hidden');
+
 			modalElement.querySelector('.e-info-time').textContent =
-				formatEventTime(infoEvent.event);
+				formatEventTime(event);
 
 			modalElement.querySelector('.e-info-age').textContent =
-				infoEvent.event.extendedProps.age;
+				event.extendedProps.age;
 
 			modalElement.querySelector('.e-info-dob').textContent =
-				infoEvent.event.extendedProps.dob;
+				event.extendedProps.dob;
 
 			modalElement.querySelector('.e-info-patient-code').textContent =
-				infoEvent.event.extendedProps.patient_code;
+				event.extendedProps.patient_code;
 
 			modalElement.querySelector('.e-info-email').textContent =
-				infoEvent.event.extendedProps.email;
+				event.extendedProps.email;
 
 			modalElement.querySelector('.e-info-phone').textContent =
-				infoEvent.event.extendedProps.phone;
+				event.extendedProps.phone;
 
 			modalElement.querySelector('.e-info-description').textContent =
-				infoEvent.event.extendedProps.description || 'Sin descripción';
+				event.extendedProps.description || 'Sin descripción';
 
 			const modal = new te.Modal(modalElement);
 			modal.show();
@@ -137,14 +156,13 @@ function SetCalendar() {
 					console.log('ERROR:', errorThrown);
 					console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
 
-					alert(XMLHttpRequest.responseText);
 					failureCallback();
 				}
 			});
 		}
       });
 
-      calendar.render();
+      calendarInstance.render();
       const listMonthButton = document.querySelector(".fc-button-group .fc-listMonth-button");
       if (listMonthButton) {
         const icon = document.createElement("i");
@@ -152,6 +170,94 @@ function SetCalendar() {
         listMonthButton.insertBefore(icon, listMonthButton.firstChild);
       }
     }
+	modalElement.addEventListener('hidden.te.modal', function () {
+		selected_appointment = null;
+	});
+}
+
+function CheckInAppointment() {
+	if(selected_appointment != null) {
+		$.ajax({
+			url: `${homeURL}/api/appointments/check-in`,
+			type: 'post',
+			data: {
+				appointment: selected_appointment
+			},
+			dataType: "json",
+			success: function(response) {
+				console.log(response);
+				if(response.success) {
+					ShowToastMessage(response.message, 'success');
+					if(response.data.appointment == selected_appointment)
+						modalElement.querySelector('.sec-check-in').classList.add('hidden');
+					modalElement.querySelector('.appointment-modal-close').click();
+					calendarInstance.refetchEvents();
+				} else {
+					ShowToastMessage(response.message, 'error');
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) { 
+				console.log('STATUS:', textStatus);
+				console.log('ERROR:', errorThrown);
+				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
+			}  
+		});
+	}
+}
+
+function CancelAppointment() {
+	if(selected_appointment != null) {
+		const startDateObj = new Date(appointmentData.start);
+		const endDateObj = new Date(appointmentData.end);
+
+		const appointmentDate = startDateObj.toLocaleDateString('es-MX'); 
+		console.log(appointmentDate);
+
+		const appointmentStart = startDateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+		console.log(appointmentStart);
+
+		const appointmentEnd = endDateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+		console.log(appointmentEnd);
+
+		ShowSweetAlertConfirmCancelCallback('warning',
+											'Cancelar Cita',
+											`¿Deseas cancelar la cita de ${appointmentData.extendedProps.patient} 
+											del día ${appointmentDate} en el horario ${appointmentStart} a ${appointmentEnd}?`,
+											'Si',
+											'No',
+											(result) => {
+			if(result.isConfirmed) {
+				$.ajax({
+					url: `${homeURL}/api/appointments/cancel`,
+					type: 'post',
+					data: {
+						appointment: selected_appointment
+					},
+					dataType: "json",
+					success: function(response) {
+						console.log(response);
+						if(response.success) {
+							ShowToastMessage(response.message, 'success');
+							modalElement.querySelector('.appointment-modal-close').click();
+							calendarInstance.refetchEvents();
+						} else {
+							ShowToastMessage(response.message, 'error');
+						}
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+						try {
+							var response = JSON.parse(XMLHttpRequest.responseText);
+							console.log(response.message);
+							ShowToastMessage(response.message, 'error');
+							
+						} catch (e) {
+							ShowToastMessage(XMLHttpRequest.responseText, 'error');
+						}
+					}  
+				});
+			}
+		})
+	}
 }
 
 function GetAppointmentsStatus() {

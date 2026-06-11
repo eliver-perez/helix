@@ -1,13 +1,12 @@
-function CerrarSesion() {
+function CerrarSesion(base_url = null) {
     $.ajax({
-            url: `${homeURL}/api/auth/logout`,
+            url: `${typeof homeURL != 'undefined' ? homeURL : base_url}/api/auth/logout`,
             type: 'post',
-            success: function(data) {
-                alert(data);
-                var returnedValue = typeof data === 'string' ? JSON.parse(data) : data;
-            
-                if(returnedValue.status == 'OK')
-                    window.location.href = `${homeURL}`;
+		        dataType: "json",
+            success: function(response) {
+              console.log(response);
+                if(response.status == 'OK')
+                    window.location.href = `${typeof homeURL != 'undefined' ? `${homeURL}` : `${base_url}` ?? ''}/autenticacion/`;
                 else
                     ShowSweetAlert('error', '¡Ocurrio un Error!', 'Ocurrio un error al intentar realizar la autenticacion.', 'Entendido');	
             },
@@ -92,4 +91,18 @@ function formatTimeTo12h(time24) {
     hours = hours === 0 ? 12 : hours; // 0 → 12
 
     return `${hours}:${minutes} ${period}`;
+}
+
+function callUrlTimer(seconds, span, url) {
+    document.querySelector(`.${span}`).textContent = `${seconds} ${seconds == 1 ? 'segundo' : 'segundos'}`;
+    const intervalId = setInterval(() => {
+      seconds -= 1;
+
+        if (seconds < 0) {
+            clearInterval(intervalId);
+            window.open(url, '_self');
+        } else {
+          document.querySelector(`.${span}`).textContent = `${seconds} ${seconds == 1 ? 'segundo' : 'segundos'}`;
+        }
+    }, 1000);
 }

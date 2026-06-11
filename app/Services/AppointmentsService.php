@@ -9,9 +9,13 @@ use App\Repositories\AppointmentsRepository;
 use App\Repositories\AppointmentsTypesRepository;
 use App\Repositories\BookingChannelsRepository;
 use App\Repositories\AppointmentsStatusRepository;
+use App\Repositories\PatientsRepository;
+use App\Repositories\StaffRepository;
+use App\Repositories\ProceduresRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\SettingsService;
 use InvalidArgumentException;
+use RuntimeException;
 
 class AppointmentsService extends Service
 {
@@ -20,6 +24,9 @@ class AppointmentsService extends Service
         private AppointmentsTypesRepository $appointmentsTypesRepository,
         private BookingChannelsRepository $bookingChannelRepository,
         private AppointmentsStatusRepository $appointmentsStatusRepository,
+        private PatientsRepository $patientsRepository,
+        private StaffRepository $staffRepository,
+        private ProceduresRepository $proceduresRepository,
         private SettingsRepository $settingsRepository
     ) {
     }
@@ -29,7 +36,7 @@ class AppointmentsService extends Service
         $interval = $settingsService->get('agenda_intervalo_minutos', 'P');
     }
 
-    public function scheduleAppointment(array $data): int {
+    public function scheduleAppointment(array $data): string {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
 
         $date = $this->formatDateToSQL($data['appointment']['date'] ?? null);
@@ -52,14 +59,16 @@ class AppointmentsService extends Service
         $cost = 0;
         $procedures_cost = array();
         foreach($procedures as $p) {
-            $procedures_cost[$p['procedure_id'].':'.$p['staff_id']] = $this->appointmentsRepository->getProcedureCost($p['procedure_id'], $p['staff_id']);
+            $procedures_cost[$p['procedure_id'].':'.$p['staff_id']] = $this->appointmentsRepository->getProcedureCost($this->uuidStringToBinary($p['procedure_id']), $this->uuidStringToBinary($p['staff_id']));
             $cost += $procedures_cost[$p['procedure_id'].':'.$p['staff_id']];
         }
 
-        $patientId = $this->normalizeRequiredInt(
+        $patientId = $this->normalizeRequiredText(
             $data['patient'] ?? null,
             'La seleccion del paciente es obligatorio.'
         );
+
+        $patientIdInt = $this->patientsRepository->getPatientId($this->uuidStringToBinary($patientId));
 
         $appointmentType = $this->normalizeRequiredInt(
             $data['appointment_type'] ?? null,
@@ -87,7 +96,7 @@ class AppointmentsService extends Service
             $appointmentUuid = $this->generateUuidBinary();
             $appointmentId = $this->appointmentsRepository->insertAppointment([
                     'uuid'                          => $appointmentUuid,
-                    'patient'                       => $patientId,
+                    'patient'                       => $patientIdInt,
                     'appointment_type'              => $appointmentType,
                     'booking_channel'               => $bookingChannel,
                     'chief_complaint'               => $chiefComplaint,
@@ -106,12 +115,15 @@ class AppointmentsService extends Service
                 $block_end = $this->timeToMinutes($p['end']);
                 $block_duration = $block_end - $block_start;
 
+                $staffIdInt = $this->staffRepository->getStaffId($this->uuidStringToBinary($p['staff_id']));
+                $procedureIdInt = $this->proceduresRepository->getProcedureId($this->uuidStringToBinary($p['procedure_id']));
+
                 $appointmentBlockUuid = $this->generateUuidBinary();
                 $this->appointmentsRepository->insertAppointmentBlock([
                     'uuid'                          => $appointmentBlockUuid,
                     'appointment'                   => $appointmentId,
-                    'staff'                         => $p['staff_id'],
-                    'procedure'                     => $p['procedure_id'],
+                    'staff'                         => $staffIdInt,
+                    'procedure'                     => $procedureIdInt,
                     'order'                         => $order++,
                     'start'                         => $block_start,
                     'end'                           => $block_end,
@@ -121,14 +133,14 @@ class AppointmentsService extends Service
 
                 $this->appointmentsRepository->insertAppointmentProcedure([
                     'appointment'                   => $appointmentId,
-                    'procedure'                     => $p['procedure_id'],
-                    'staff'                         => $p['staff_id'],
+                    'procedure'                     => $procedureIdInt,
+                    'staff'                         => $staffIdInt,
                     'cost'                          => $procedures_cost[$p['procedure_id'].':'.$p['staff_id']]
                 ]);
             }
 
             $conn->commit();
-            return $appointmentId;
+            return $this->uuidBinaryToString($appointmentUuid);
         } catch (\Throwable $e) {
             if ($conn->inTransaction()) {
                 $conn->rollBack();
@@ -165,6 +177,7 @@ class AppointmentsService extends Service
                     'extendedProps' => [
                         'patient' => $d['paciente'],
                         'patient_code' => $d['clave_paciente'] ?? '',
+                        'status' => $d['estatus_codigo'],
                         'appointment_type' => $d['asunto'],
                         'description' => $d['motivo_consulta'] ?? '',
                         'dob' => $d['f_nacimiento'] ?? '',
@@ -199,8 +212,10 @@ class AppointmentsService extends Service
         $procedureCosts = [];
 
         foreach ($procedures as $procedure) {
-            $staffId = (int)($procedure['staffId'] ?? 0);
-            $procedureId = (int)($procedure['procedureId'] ?? 0);
+            // $staffId = (int)($procedure['staffId'] ?? 0);
+            // $procedureId = (int)($procedure['procedureId'] ?? 0);
+            $staffId = $this->uuidStringToBinary($procedure['staffId']);
+            $procedureId = $this->uuidStringToBinary($procedure['procedureId']);
 
             if ($staffId <= 0 || $procedureId <= 0) {
                 throw new InvalidArgumentException('Procedimiento inválido');
@@ -232,7 +247,8 @@ class AppointmentsService extends Service
         }
 
         $firstProcedure = $procedures[0];
-        $firstStaffId = (int)$firstProcedure['staffId'];
+        // $firstStaffId = (int)$firstProcedure['staffId'];
+        $firstStaffId = $this->uuidStringToBinary($firstProcedure['staffId']);
         $firstDuration = (int)$firstProcedure['duration'];
 
         $firstIntervals = $staffAvailability[$firstStaffId];
@@ -248,8 +264,8 @@ class AppointmentsService extends Service
                 $totalDuration = 0;
 
                 foreach ($procedures as $procedure) {
-                    $procedureId = (int)$procedure['procedureId'];
-                    $staffId = (int)$procedure['staffId'];
+                    $procedureId = $this->uuidStringToBinary($procedure['procedureId']); 
+                    $staffId = $this->uuidStringToBinary($procedure['staffId']);
                     $duration = (int)$procedure['duration'];
 
                     $currentEnd = $currentStart + $duration;
@@ -262,9 +278,9 @@ class AppointmentsService extends Service
                     }
 
                     $procedureBlocks[] = [
-                        'procedure_id' => $procedureId,
+                        'procedure_id' => $this->uuidBinaryToString($procedureId),
                         'procedure' => $procedureName,
-                        'staff_id' => $staffId,
+                        'staff_id' => $this->uuidBinaryToString($staffId),
                         'staff_name' => $staffNames[$staffId] ?? '',
                         'start' => $this->minutesToTime($currentStart),
                         'end' => $this->minutesToTime($currentEnd),
@@ -289,28 +305,6 @@ class AppointmentsService extends Service
         return $slots;
     }
 
-    private function minutesToTime(int $minutes): string {
-        $hours = intdiv($minutes, 60);
-        $mins = $minutes % 60;
-
-        return sprintf('%02d:%02d', $hours, $mins);
-    }
-
-    function timeToMinutes(string $time): int {
-        if (!preg_match('/^(\d{1,2}):(\d{2})(?::\d{2})?$/', $time, $matches)) {
-            throw new InvalidArgumentException("Formato de hora inválido: {$time}");
-        }
-
-        $h = (int) $matches[1];
-        $m = (int) $matches[2];
-
-        if ($h < 0 || $h > 23 || $m < 0 || $m > 59) {
-            throw new InvalidArgumentException("Hora fuera de rango: {$time}");
-        }
-
-        return ($h * 60) + $m;
-    }
-
     private function fitsInIntervals(array $intervals, int $start, int $end): bool
     {
         foreach ($intervals as $interval) {
@@ -320,5 +314,135 @@ class AppointmentsService extends Service
         }
 
         return false;
+    }
+
+    public function checkIn(array $data) {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+
+        $appointment = $this->normalizeRequiredText(
+            $data['appointment'] ?? null,
+            'No se recibio informacion de la cita.'
+        );
+
+        $appointmentId = $this->uuidStringToBinary($appointment);
+
+        if (!$this->appointmentsRepository->appointmentExistsByUuid($appointmentId)) {
+            throw new InvalidArgumentException('No se encontro informacion de la cita');
+        }
+
+        $blockScheduledStatus = $this->normalizeRequiredInt(
+            $this->appointmentsStatusRepository->getBlockIdByCode('agendada') ?? null,
+            'Ocurrio un error al intentar obtener información.'
+        );
+
+        $waitingStatus = $this->normalizeRequiredInt(
+            $this->appointmentsStatusRepository->getIdByCode('en_espera') ?? null,
+            'Ocurrio un error al intentar obtener información.'
+        );
+
+        $blockWaitingStatus = $this->normalizeRequiredInt(
+            $this->appointmentsStatusRepository->getBlockIdByCode('en_espera') ?? null,
+            'Ocurrio un error al intentar obtener información.'
+        );
+
+        $conn = $this->appointmentsRepository->getConnection();
+        $conn->beginTransaction();
+        try {
+            $actual_status = $this->appointmentsRepository->appointmentStatus($appointmentId);
+            
+            if($actual_status != 'agendada')
+                throw new RuntimeException('La cita no esta en un estatus valido para hacer check-in.');
+
+            $appointmentBlockId = $this->appointmentsRepository->getFirstAppointmentBlock([
+                'appointment'                       => $appointmentId,
+                'status'                            => $blockScheduledStatus,
+            ]);
+
+            $this->appointmentsRepository->changeAppointmentStatus([
+                'appointment'                       => $appointmentId,
+                'status'                            => $waitingStatus,
+            ]);
+
+            $this->appointmentsRepository->changeAppointmentBlockStatus([
+                'block'                             => $appointmentBlockId,
+                'status'                            => $blockWaitingStatus,
+            ]);
+
+            $conn->commit();
+        } catch (\Throwable $e) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    public function cancel(array $data) {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+
+        $appointment = $this->normalizeRequiredText(
+            $data['appointment'] ?? null,
+            'No se recibio informacion de la cita.'
+        );
+
+        $appointmentId = $this->uuidStringToBinary($appointment);
+
+        if (!$this->appointmentsRepository->appointmentExistsByUuid($appointmentId)) {
+            throw new InvalidArgumentException('No se encontro informacion de la cita');
+        }
+
+        $status = $this->normalizeRequiredInt(
+            $this->appointmentsStatusRepository->getIdByCode('cancelada') ?? null,
+            'Ocurrio un error al intentar obtener información.'
+        );
+
+        $refusedStatus = $this->normalizeRequiredInt(
+            $this->appointmentsStatusRepository->getIdByCode('rechazada') ?? null,
+            'Ocurrio un error al intentar obtener información.'
+        );
+
+        $attendedStatus = $this->normalizeRequiredInt(
+            $this->appointmentsStatusRepository->getIdByCode('finalizada') ?? null,
+            'Ocurrio un error al intentar obtener información.'
+        );
+
+        $noAssistanceStatus = $this->normalizeRequiredInt(
+            $this->appointmentsStatusRepository->getIdByCode('no_presento') ?? null,
+            'Ocurrio un error al intentar obtener información.'
+        );
+
+        $conn = $this->appointmentsRepository->getConnection();
+        $conn->beginTransaction();
+        try {
+            $actual_status = $this->appointmentsRepository->appointmentStatus($appointmentId);
+            
+            if($actual_status == 'cancelada' || 
+                $actual_status == 'rechazada' || 
+                $actual_status == 'no_presento' || 
+                $actual_status == 'finalizada')
+                throw new RuntimeException('La cita no esta en un estatus válido para cancelarse.');
+
+            $this->appointmentsRepository->changeAppointmentStatus([
+                    'appointment'                   => $appointmentId,
+                    'status'                        => $status,
+                ]);
+
+            $this->appointmentsRepository->cancelAppointmentBlocks([
+                'appointment'                       => $appointmentId,
+                'status'                            => [
+                    'canceled'                      => $status,
+                    'refused'                       => $refusedStatus,
+                    'noAssistance'                  => $noAssistanceStatus,
+                    'attended'                      => $attendedStatus,
+                ],
+            ]);
+
+            $conn->commit();
+        } catch (\Throwable $e) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            throw $e;
+        }
     }
 }

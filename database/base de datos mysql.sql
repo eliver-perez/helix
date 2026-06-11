@@ -143,7 +143,7 @@ CREATE TABLE usuarios_tipos (
 INSERT INTO usuarios_tipos(codigo, tipo) VALUES('administrador', 'Administrador'),
                                                     ('recepcion', 'Recepción'),
                                                     ('supervisor', 'Supervisor'),
-                                                    ('doctor', 'Doctor'),
+                                                    ('podologo', 'Podologo'),
                                                     ('finanzas', 'Finanzas'),
                                                     ('enfermero', 'Enfermero'),
                                                     ('caja', 'Caja');
@@ -218,8 +218,8 @@ CREATE TABLE personal (
     CONSTRAINT FK_personal_estatus FOREIGN KEY(estatus) REFERENCES personal_estatus(id)
 );
 
-INSERT INTO personal(uuid, nombre, paterno, puesto, estatus, genero, f_registro) VALUES(10, 'Juan', 'Perez', 4, 1, 'H', NOW()),
-                                                                                        (20, 'Eliver', 'Perez', 4, 1, 'H', NOW());
+INSERT INTO personal(uuid, nombre, paterno, puesto, estatus, genero, f_registro) VALUES(X'A6B3D104D4594260B300A8B2A0EAB2D7', 'Juan', 'Perez', 4, 1, 'H', NOW()),
+                                                                                        (X'3EFFBD0D74F1402796755BAC96ACE4BA', 'Eliver', 'Perez', 4, 1, 'H', NOW());
 
 CREATE TABLE personal_profesional (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -262,9 +262,9 @@ CREATE TABLE usuarios (
 );
 
 INSERT INTO usuarios(uuid, nombre, usuario, password_hash, tipo_usuario, activo, f_registro) 
-                VALUES(10, 'Admin', 'admin', '$2y$10$MqUTuFBUs.OIhkWSAxL3A.RfbglmDA9Uy/vgfYNOUvs2kI0EkBaYK', 1, 1, NOW()),
-                        (20, 'Juan', 'juan', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW()),
-                        (30, 'Eliver', 'eliver', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW());
+                VALUES(X'C475E751FD1547DDA8500D566F200F24', 'Admin', 'admin', '$2y$10$MqUTuFBUs.OIhkWSAxL3A.RfbglmDA9Uy/vgfYNOUvs2kI0EkBaYK', 1, 1, NOW()),
+                        (X'f47d622e396b465f968a75a9beaa966f', 'Juan', 'juan', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW()),
+                        (X'0xf47d622e396b465f968a75a9beaa966f', 'Eliver', 'eliver', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW());
 
 CREATE TABLE personal_usuarios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -303,12 +303,63 @@ CREATE TABLE empresas (
 INSERT INTO empresas(uuid, empresa, domicilio, esta_empresa) VALUES(X'30313866386333612d386630622d3762', 'Clinica 1', 'Domicilio Conocido 1', 1);
 INSERT INTO empresas(uuid, empresa, domicilio, esta_empresa) VALUES(X'40313866386333612d386630622d3762', 'Clinica 2', 'Domicilio Conocido 2', 0);
 
+CREATE TABLE usuarios_empresas_roles (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    usuario                         INT NOT NULL,
+    empresa                         INT NOT NULL,
+    tipo_usuario                    SMALLINT NOT NULL,
+    activo                          TINYINT NOT NULL DEFAULT 1,
+    f_registro                      DATETIME NOT NULL,
+    f_baja                          DATETIME DEFAULT NULL,
+
+    UNIQUE(usuario, empresa, tipo_usuario),
+
+    FOREIGN KEY(usuario) REFERENCES usuarios(id),
+    FOREIGN KEY(empresa) REFERENCES empresas(id),
+    FOREIGN KEY(tipo_usuario) REFERENCES usuarios_tipos(id)
+);
+
+INSERT INTO usuarios_empresas_roles(usuario, empresa, tipo_usuario, f_registro) VALUES(1, 1, 1, NOW()),
+                                                                                        (2, 1, 4, NOW()),
+                                                                                        (3, 1, 7, NOW());
+
 CREATE TABLE permisos (
     id                              VARCHAR(30) PRIMARY KEY,
     permiso                         VARCHAR(255) NOT NULL,
     descripcion                     VARCHAR(1024) DEFAULT NULL,
     f_registro                      DATETIME NOT NULL
 );
+
+INSERT INTO permisos(id, permiso, f_registro) VALUES('superadmin', 'Administrador con permisos elevados.', NOW()),
+                                                    ('admin', 'Usuario administrador', NOW()),
+                                                    ('personal', 'Personal - Visualizar personal registrado.', NOW()),
+                                                    ('personal-modificar', 'Personal - Registrar/Modificar.', NOW()),
+                                                    ('usuarios', 'Usuario - Visualizar usuarios registrados.', NOW()),
+                                                    ('usuarios-modificar', 'Usuarios - Modificar usuarios registrados.', NOW()),
+                                                    ('permisos', 'Permisos - Visualizar roles y permisos.', NOW()),
+                                                    ('permisos-modificar', 'Permisos - Modificar/Asignar roles y permisos.', NOW()),
+                                                    ('horarios', 'Horarios - Visualizar horarios disponibles del personal.', NOW()),
+                                                    ('horarios-modificar', 'Horarios - Modificar horarios disponibles del personal.', NOW()),
+                                                    ('servicios', 'Servicios - Visualizar servicios registrados.', NOW()),
+                                                    ('servicios-modificar', 'Servicios - Registrar/Modificar.', NOW()),
+                                                    ('consentimientos', 'Consentimientos - Visualizar consentimientos registrados.', NOW()),
+                                                    ('consentimientos-modificar', 'Consentimientos - Registrar/Modificar.', NOW()),
+                                                    ('pacientes', 'Pacientes - Visualizar pacientes registrados.', NOW()),
+                                                    ('pacientes-modificar', 'Pacientes - Registrar/Modificar.', NOW()),
+                                                    ('agenda', 'Agenda - Visualizar citas registradas', NOW()),
+                                                    ('agenda-modificar', 'Agenda - Registrar/Modificar citas en la agenda.', NOW()),
+                                                    ('proveedores', 'Proveedores - Visualizar proveedores registrados.', NOW()),
+                                                    ('proveedores-modificar', 'Proveedores - Registrar/Modificar.', NOW()),
+                                                    ('inventario', 'Inventario - Visualizar inventario.', NOW()),
+                                                    ('productos', 'Productos - Visualizar productos registrados', NOW()),
+                                                    ('productos-modificar', 'Productos - Registrar/Modificar.', NOW()),
+                                                    ('requisiciones', 'Requisiciones - Visualizar requisiciones registradas.', NOW()),
+                                                    ('requisiciones-modificar', 'Requisiciones - Registrar/Modificar.', NOW()),
+                                                    ('ordenes-compra', 'Ordenes de Compra - Visualizar ordenes de compra registradas.', NOW()),
+                                                    ('ordenes-compra-modificar', 'Ordenes de Compra - Registrar/Modificar.', NOW()),
+                                                    ('plantillas', 'Plantillas - Visualizar plantillas registradas.', NOW()),
+                                                    ('ajustes', 'Ajustes - Visualizar ajustes registrados.', NOW()),
+                                                    ('ajustes-modificar', 'Ajustes - Modificar ajustes de la plataforma.', NOW());
 
 CREATE TABLE permisos_usuarios (
     permiso                         VARCHAR(30) NOT NULL,
@@ -325,14 +376,15 @@ CREATE TABLE permisos_usuarios (
 CREATE TABLE permisos_usuarios_tipo (
     permiso                         VARCHAR(30) NOT NULL,
     tipo                            SMALLINT NOT NULL,
-    empresa                         INT NOT NULL,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     valor                           SMALLINT NOT NULL DEFAULT 1,
     f_actualizacion                 DATETIME NOT NULL,
     CONSTRAINT FK_permisosusuariostipo_permiso FOREIGN KEY(permiso) REFERENCES permisos(id),
-    CONSTRAINT FK_permisosusuariostipo_tipo FOREIGN KEY(tipo) REFERENCES usuarios_tipos(id),
-    CONSTRAINT FK_permisosusuariostipo_empresa FOREIGN KEY(empresa) REFERENCES empresas(id)
+    CONSTRAINT FK_permisosusuariostipo_tipo FOREIGN KEY(tipo) REFERENCES usuarios_tipos(id)
 );
+
+INSERT INTO permisos_usuarios_tipo(permiso, tipo, uuid, valor, f_actualizacion) VALUES('superadmin', 1, X'E8DABC3FFEEB444C9AD57350B8984EE1', 1, NOW()),
+                                                                                    ('citas-atender', 4, X'9A5A8BB863B74902B9DF74150B522879', 1, NOW());
 
 CREATE TABLE usuarios_sesiones (
     id                              BINARY(16) PRIMARY KEY,
@@ -353,9 +405,6 @@ CREATE TABLE usuarios_sesiones (
 
     CONSTRAINT FK_usuariossesiones_usuario FOREIGN KEY (usuario) REFERENCES usuarios(id)
 );
-
-
-
 
 CREATE TABLE plantillas_horarios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -740,7 +789,7 @@ CREATE TABLE articulos (
     habilitado_venta                SMALLINT NOT NULL DEFAULT 1,
     activo                          SMALLINT NOT NULL DEFAULT 1,
     registro                        INT NOT NULL,
-    f_registro                    DATETIME NOT NULL,
+    f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
     CONSTRAINT FK_articulos_categoria FOREIGN KEY(categoria) REFERENCES articulos_categoria(id),
     CONSTRAINT FK_articulos_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
@@ -750,6 +799,7 @@ CREATE TABLE articulos (
 
 CREATE TABLE servicios (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
     codigo                          VARCHAR(30) NOT NULL UNIQUE,
     servicio                        VARCHAR(120) NOT NULL,
     descripcion                     VARCHAR(500) DEFAULT NULL,
@@ -757,35 +807,37 @@ CREATE TABLE servicios (
     costo_base                      NUMERIC(18,2) NOT NULL,
     requiere_material               BOOLEAN NOT NULL DEFAULT 0,
     es_procedimiento                BOOLEAN NOT NULL DEFAULT 0,
-    activo                          BOOLEAN NOT NULL DEFAULT 1
+    activo                          BOOLEAN NOT NULL DEFAULT 1,
+    f_registro                      DATETIME NOT NULL,
+    f_actualizacion                 DATETIME NOT NULL
 );
 
-INSERT INTO servicios (codigo, servicio, descripcion, duracion_min, costo_base, requiere_material, es_procedimiento) VALUES
+INSERT INTO servicios (uuid, codigo, servicio, descripcion, duracion_min, costo_base, requiere_material, es_procedimiento, f_registro, f_actualizacion) VALUES
 
-('consulta-general',        'Consulta General Podológica',        'Valoración inicial del estado del pie y diagnóstico básico',                  30, 500, 0, 0),
-('consulta-seguimiento',    'Consulta de Seguimiento',             'Revisión de evolución de tratamiento o control posterior',                   20, 350, 0, 0),
+(0x62d6d842b600493496ce7ec7491f5dfc, 'consulta-general',        'Consulta General Podológica',        'Valoración inicial del estado del pie y diagnóstico básico',                  30, 500, 0, 0, NOW(), NOW()),
+(0x4d9414124c5249398909cb991285db12, 'consulta-seguimiento',    'Consulta de Seguimiento',             'Revisión de evolución de tratamiento o control posterior',                   20, 350, 0, 0, NOW(), NOW()),
 
-('limpieza-podologica',     'Limpieza Podológica',                 'Corte de uñas, limado, limpieza de hiperqueratosis leve',                     45, 700, 1, 0),
-('corte-unas-especial',     'Corte Especializado de Uñas',         'Corte clínico para uñas engrosadas o deformadas',                              30, 400, 0, 0),
+(0x48e8284b8cd5478aa8ccac03216f6a22, 'limpieza-podologica',     'Limpieza Podológica',                 'Corte de uñas, limado, limpieza de hiperqueratosis leve',                     45, 700, 1, 0, NOW(), NOW()),
+(0xf3b204852e3440f5b83a1256f9365d77, 'corte-unas-especial',     'Corte Especializado de Uñas',         'Corte clínico para uñas engrosadas o deformadas',                              30, 400, 0, 0, NOW(), NOW()),
 
-('una-encarnada',           'Tratamiento de Uña Encarnada',        'Retiro parcial de espícula ungueal',                                            60, 1200, 1, 1),
-('onicomicosis-control',    'Control de Onicomicosis',              'Limpieza y control de uñas con hongo',                                          45, 650, 1, 0),
-('hiperqueratosis',         'Retiro de Hiperqueratosis',            'Eliminación de durezas profundas',                                              40, 600, 1, 0),
-('helomas',                 'Eliminación de Helomas (Callos)',      'Retiro de callosidades nucleadas',                                              40, 650, 1, 1),
+(0xe54747640a2c4faf93ee1772800a002d, 'una-encarnada',           'Tratamiento de Uña Encarnada',        'Retiro parcial de espícula ungueal',                                            60, 1200, 1, 1, NOW(), NOW()),
+(0x375d0571ab8042a3b50516bea8f2ec5b, 'onicomicosis-control',    'Control de Onicomicosis',              'Limpieza y control de uñas con hongo',                                          45, 650, 1, 0, NOW(), NOW()),
+(0xa3eb7ca2d3a24e138f6f87f3f2438b55, 'hiperqueratosis',         'Retiro de Hiperqueratosis',            'Eliminación de durezas profundas',                                              40, 600, 1, 0, NOW(), NOW()),
+(0x53d445624e4e4caa8f2a899ecfde8856, 'helomas',                 'Eliminación de Helomas (Callos)',      'Retiro de callosidades nucleadas',                                              40, 650, 1, 1, NOW(), NOW()),
 
-('valoracion-pie-diabetico','Valoración de Pie Diabético',          'Evaluación de riesgo y cuidado especializado',                                  30, 550, 0, 0),
-('curacion-pie-diabetico',  'Curación Pie Diabético',               'Curación de lesiones en paciente diabético',                                    45, 750, 1, 1),
+(0xa2e36819385d461bbbe8ad7b6fefd919, 'valoracion-pie-diabetico','Valoración de Pie Diabético',          'Evaluación de riesgo y cuidado especializado',                                  30, 550, 0, 0, NOW(), NOW()),
+(0xb663ebc64b1a40fead4219c3b34fadcb, 'curacion-pie-diabetico',  'Curación Pie Diabético',               'Curación de lesiones en paciente diabético',                                    45, 750, 1, 1, NOW(), NOW()),
 
-('curacion-simple',         'Curación Simple',                      'Limpieza y vendaje de lesión leve',                                             20, 300, 1, 0),
-('curacion-avanzada',       'Curación Avanzada',                    'Curación de herida con mayor profundidad o riesgo',                             40, 600, 1, 1),
+(0x85398f105542413a8a0167f7bd12aca2, 'curacion-simple',         'Curación Simple',                      'Limpieza y vendaje de lesión leve',                                             20, 300, 1, 0, NOW(), NOW()),
+(0xe174df4fd2cf489882f10af20e4166e3, 'curacion-avanzada',       'Curación Avanzada',                    'Curación de herida con mayor profundidad o riesgo',                             40, 600, 1, 1, NOW(), NOW()),
 
-('valoracion-ortesis',      'Valoración para Órtesis',              'Evaluación para colocación de correctores ungueales',                           30, 400, 0, 0),
-('colocacion-ortesis',      'Colocación de Órtesis Ungueal',        'Instalación de corrector para uña encarnada',                                   45, 900, 1, 1),
+(0x91bbb379b2a649d28e7e7471e408ba32, 'valoracion-ortesis',      'Valoración para Órtesis',              'Evaluación para colocación de correctores ungueales',                           30, 400, 0, 0, NOW(), NOW()),
+(0xbb173cf1d8714f5f8252a4dbd6a40969, 'colocacion-ortesis',      'Colocación de Órtesis Ungueal',        'Instalación de corrector para uña encarnada',                                   45, 900, 1, 1, NOW(), NOW()),
 
-('terapia-laser-hongos',    'Terapia Láser para Hongos',            'Sesión de tratamiento láser para onicomicosis',                                 30, 1000, 1, 1),
-('deslaminacion-ungueal',   'Deslaminación Ungueal',                'Reducción mecánica de grosor en uñas',                                          30, 500, 1, 0),
+(0x73c0104d7e6c451c86f6fe79ed2b0926, 'terapia-laser-hongos',    'Terapia Láser para Hongos',            'Sesión de tratamiento láser para onicomicosis',                                 30, 1000, 1, 1, NOW(), NOW()),
+(0xd6c80b43c5ac4ce3a711cb22b34bdb7d, 'deslaminacion-ungueal',   'Deslaminación Ungueal',                'Reducción mecánica de grosor en uñas',                                          30, 500, 1, 0, NOW(), NOW()),
 
-('pedicure-clinico',        'Pedicure Clínico',                     'Servicio estético con enfoque en salud del pie',                                60, 800, 1, 0);
+(0xa210e1b448be4d02b137dbdded3bb028, 'pedicure-clinico',        'Pedicure Clínico',                     'Servicio estético con enfoque en salud del pie',                                60, 800, 1, 0, NOW(), NOW());
 
 CREATE TABLE personal_servicios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -898,6 +950,10 @@ INSERT INTO citas_formas(codigo, forma) VALUES('presencial', 'Presencial'),
 CREATE TABLE citas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    sucursal                        SMALLINT NOT NULL,
+    ejercicio                       SMALLINT NOT NULL,
+    consecutivo                     INT NOT NULL,
+    folio                           VARCHAR(30) NOT NULL,
     paciente                        INT NOT NULL,
     asunto                          SMALLINT DEFAULT NULL,
     forma                           SMALLINT DEFAULT NULL,
@@ -913,14 +969,28 @@ CREATE TABLE citas (
     adeudo                          NUMERIC(18, 2) NOT NULL DEFAULT 0,
     pagado                          NUMERIC(18, 2) NOT NULL DEFAULT 0,
     bonificacion                    NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    checkin                         INT DEFAULT NULL,
+    inicio_cita                     INT DEFAULT NULL,
+    termino_cita                    INT DEFAULT NULL,
+    cancelo_cita                    INT DEFAULT NULL,
+    f_checkin                       DATETIME DEFAULT NULL,
+    f_inicio_cita                   DATETIME DEFAULT NULL,
+    f_termino_cita                  DATETIME DEFAULT NULL,
+    f_cancelo_cita                  DATETIME DEFAULT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT UK_citas_consecutivo UNIQUE(sucursal, ejercicio, consecutivo),
+    CONSTRAINT UK_citas_folio UNIQUE(folio),
     CONSTRAINT FK_citas_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_citas_asunto FOREIGN KEY(asunto) REFERENCES citas_asuntos(id),
     CONSTRAINT FK_citas_forma FOREIGN KEY(forma) REFERENCES citas_formas(id),
     CONSTRAINT FK_citas_estatus FOREIGN KEY(estatus) REFERENCES citas_estatus(id),
-    CONSTRAINT FK_citas_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
+    CONSTRAINT FK_citas_checkin FOREIGN KEY(checkin) REFERENCES usuarios(id),
+    CONSTRAINT FK_citas_iniciocita FOREIGN KEY(inicio_cita) REFERENCES usuarios(id),
+    CONSTRAINT FK_citas_terminocita FOREIGN KEY(termino_cita) REFERENCES usuarios(id),
+    CONSTRAINT FK_citas_cancelocita FOREIGN KEY(cancelo_cita) REFERENCES usuarios(id)
 );
+
 
 CREATE TABLE citas_bloques_estatus (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -948,9 +1018,22 @@ CREATE TABLE citas_bloques (
     h_fin                           SMALLINT NOT NULL,
     duracion                        SMALLINT NOT NULL,
     estatus                         SMALLINT NOT NULL,
+    checkin                         INT DEFAULT NULL,
+    inicio_cita                     INT DEFAULT NULL,
+    termino_cita                    INT DEFAULT NULL,
+    cancelo_cita                    INT DEFAULT NULL,
+    f_checkin                       DATETIME DEFAULT NULL,
+    f_inicio_cita                   DATETIME DEFAULT NULL,
+    f_termino_cita                  DATETIME DEFAULT NULL,
+    f_cancelo_cita                  DATETIME DEFAULT NULL,
     CONSTRAINT FK_citasbloques_cita FOREIGN KEY (cita) REFERENCES citas(id),
     CONSTRAINT FK_citasbloques_personal FOREIGN KEY (personal) REFERENCES personal(id),
-    CONSTRAINT FK_citasbloques_servicio FOREIGN KEY (servicio) REFERENCES servicios(id)
+    CONSTRAINT FK_citasbloques_servicio FOREIGN KEY (servicio) REFERENCES servicios(id),
+    CONSTRAINT FK_citasbloques_estatus FOREIGN KEY(estatus) REFERENCES citas_bloques_estatus(id),
+    CONSTRAINT FK_citasbloques_checkin FOREIGN KEY(checkin) REFERENCES usuarios(id),
+    CONSTRAINT FK_citasbloques_iniciocita FOREIGN KEY(inicio_cita) REFERENCES usuarios(id),
+    CONSTRAINT FK_citasbloques_terminocita FOREIGN KEY(termino_cita) REFERENCES usuarios(id),
+    CONSTRAINT FK_citasbloques_cancelocita FOREIGN KEY(cancelo_cita) REFERENCES usuarios(id)
 );
 
 CREATE INDEX IDX_citasbloques_servicio ON citas_bloques(personal, servicio);
@@ -978,6 +1061,389 @@ CREATE TABLE citas_servicios_articulos (
     CONSTRAINT FK_citasserviciosarticulos_cita FOREIGN KEY (cita) REFERENCES citas(id),
     CONSTRAINT FK_citasserviciosarticulos_servicio FOREIGN KEY (servicio) REFERENCES servicios(id),
     CONSTRAINT FK_citasserviciosarticulos_articulo FOREIGN KEY (articulo) REFERENCES articulos(id)
+);
+
+CREATE TABLE consultas (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    cita                            INT NOT NULL,
+    paciente                        INT NOT NULL,
+    personal                        INT NOT NULL,
+
+    observacion_inicial             TEXT DEFAULT NULL,
+    motivo_consulta                 TEXT DEFAULT NULL,
+    padecimiento_actual             TEXT DEFAULT NULL,
+    exploracion_resumen             TEXT DEFAULT NULL,
+    diagnostico_resumen             TEXT DEFAULT NULL,
+    plan_tratamiento                TEXT DEFAULT NULL,
+    observaciones                   TEXT DEFAULT NULL,
+    indicaciones                    TEXT DEFAULT NULL,
+
+    estatus                         SMALLINT NOT NULL DEFAULT 1,
+
+    f_inicio                        DATETIME DEFAULT NULL,
+    f_fin                           DATETIME DEFAULT NULL,
+    registro                        INT NOT NULL,
+    finalizo                        INT DEFAULT NULL,
+    f_registro                      DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_consultas_cita FOREIGN KEY (cita) REFERENCES citas(id),
+    CONSTRAINT FK_consultas_paciente FOREIGN KEY (paciente) REFERENCES pacientes(id),
+    CONSTRAINT FK_consultas_personal FOREIGN KEY (personal) REFERENCES personal(id),
+    CONSTRAINT FK_consultas_registro FOREIGN KEY (registro) REFERENCES usuarios(id),
+    CONSTRAINT FK_consultas_finalizo FOREIGN KEY (finalizo) REFERENCES usuarios(id)
+);
+
+CREATE TABLE diagnosticos_tipos (
+    id                              TINYINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(20) NOT NULL UNIQUE,
+    tipo                            VARCHAR(40) NOT NULL
+);
+
+INSERT INTO diagnosticos_tipos(codigo, tipo) VALUES('principal', 'Principal'),
+                                                    ('secundario', 'Secundario'),
+                                                    ('sospecha', 'Sospecha'),
+                                                    ('seguimiento', 'Seguimiento');
+
+CREATE TABLE diagnosticos_categorias (
+    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(40) NOT NULL UNIQUE,
+    categoria                       VARCHAR(80) NOT NULL,
+    especialidad                    SMALLINT DEFAULT NULL,
+    activo                          TINYINT NOT NULL DEFAULT 1,
+
+    CONSTRAINT FK_diagnosticoscategorias_especialidad FOREIGN KEY(especialidad) REFERENCES especialidades(id)
+);
+
+INSERT INTO diagnosticos_categorias(
+    codigo,
+    categoria,
+    especialidad
+) VALUES
+('unas', 'Alteraciones Ungueales', 1),
+('piel', 'Alteraciones de la Piel', 1),
+('pie_diabetico', 'Pie Diabético', 1),
+('deformidades', 'Deformidades del Pie', 1),
+('marcha', 'Alteraciones de la Marcha', 1),
+('vascular', 'Alteraciones Vasculares', 1),
+('neurologico', 'Alteraciones Neurológicas', 1),
+('traumatico', 'Lesiones Traumáticas', 1),
+('infeccioso', 'Procesos Infecciosos', 1),
+('otros', 'Otros Diagnósticos', 1);
+
+CREATE TABLE diagnosticos (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    codigo                          VARCHAR(60) NOT NULL UNIQUE,
+    diagnostico                     VARCHAR(150) NOT NULL,
+    categoria                       SMALLINT DEFAULT NULL,
+    especialidad                    SMALLINT DEFAULT NULL,
+
+    descripcion                     VARCHAR(500) DEFAULT NULL,
+    activo                          TINYINT NOT NULL DEFAULT 1,
+
+    f_registro                      DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
+
+    CONSTRAINT FK_diagnosticos_categoria FOREIGN KEY(categoria) REFERENCES diagnosticos_categorias(id),
+    CONSTRAINT FK_diagnosticos_especialidad FOREIGN KEY(especialidad) REFERENCES especialidades(id)
+);
+
+INSERT INTO diagnosticos(
+    uuid,
+    codigo,
+    diagnostico,
+    categoria,
+    especialidad,
+    f_registro
+) VALUES
+
+(X'79A5323D0F7C48A39FBDA63E460593D4', 'onicocriptosis', 'Onicocriptosis (Uña Encarnada)', 1, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593D5', 'onicomicosis', 'Onicomicosis', 1, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593D6', 'onicodistrofia', 'Onicodistrofia', 1, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593D7', 'traumatismo_ungueal', 'Traumatismo Ungueal', 1, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593D8', 'hiperqueratosis', 'Hiperqueratosis', 2, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593D9', 'heloma', 'Heloma (Callo)', 2, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593DA', 'verruga_plantar', 'Verruga Plantar', 2, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593DB', 'dermatomicosis', 'Dermatomicosis', 2, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593DC', 'pie_diabetico_bajo', 'Pie Diabético Riesgo Bajo', 3, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593DD', 'pie_diabetico_moderado', 'Pie Diabético Riesgo Moderado', 3, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593DE', 'pie_diabetico_alto', 'Pie Diabético Riesgo Alto', 3, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593DF', 'ulcera_diabetica', 'Úlcera Diabética', 3, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593E0', 'hallux_valgus', 'Hallux Valgus (Juanete)', 4, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593E1', 'dedos_martillo', 'Dedos en Martillo', 4, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593E2', 'pie_plano', 'Pie Plano', 4, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593E3', 'pie_cavo', 'Pie Cavo', 4, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593E4', 'alteracion_marcha', 'Alteración de la Marcha', 5, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593E5', 'fascitis_plantar', 'Fascitis Plantar', 5, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593E6', 'insuficiencia_venosa', 'Insuficiencia Venosa', 6, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593E7', 'compromiso_vascular', 'Compromiso Vascular Periférico', 6, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593E8', 'neuropatia_periferica', 'Neuropatía Periférica', 7, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593E9', 'perdida_sensibilidad', 'Pérdida de Sensibilidad', 7, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593EA', 'contusion', 'Contusión', 8, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593EB', 'herida', 'Herida en Pie', 8, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593EC', 'celulitis', 'Celulitis', 9, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593ED', 'absceso', 'Absceso', 9, 1, NOW()),
+
+(X'79A5323D0F7C48A39FBDA63E460593EE', 'dolor_podal', 'Dolor Podal', 10, 1, NOW()),
+(X'79A5323D0F7C48A39FBDA63E460593EF', 'sin_hallazgos', 'Sin Hallazgos Patológicos', 10, 1, NOW());
+
+CREATE TABLE consultas_diagnosticos (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    consulta                        INT NOT NULL,
+    tipo_diagnostico                TINYINT DEFAULT NULL,
+    diagnostico_catalogo            INT DEFAULT NULL,
+    diagnostico                     VARCHAR(255) NOT NULL,
+    observaciones                   TEXT DEFAULT NULL,
+
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    CONSTRAINT FK_consultasdiagnosticos_consulta FOREIGN KEY (consulta) REFERENCES consultas(id),
+    CONSTRAINT FK_consultasdiagnosticos_catalogo FOREIGN KEY(diagnostico_catalogo) REFERENCES diagnosticos(id)
+    CONSTRAINT FK_consultasdiagnosticos_tipo FOREIGN KEY (tipo) REFERENCES diagnosticos_tipos(id),
+    CONSTRAINT FK_consultasdiagnosticos_registro FOREIGN KEY (registro) REFERENCES usuarios(id)
+);
+
+CREATE TABLE consultas_notas (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    consulta                        INT NOT NULL,
+    tipo                            VARCHAR(30) NOT NULL DEFAULT 'nota',
+    nota                            TEXT NOT NULL,
+
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL
+);
+
+CREATE TABLE consultas_indicaciones (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    consulta                        INT NOT NULL,
+    indicacion                      SMALLINT DEFAULT NULL,
+    descripcion                     TEXT NOT NULL,
+
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL
+);
+
+CREATE TABLE consultas_archivos (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    consulta                        INT NOT NULL,
+    archivo                         VARCHAR(500) NOT NULL,
+    nombre_original                 VARCHAR(255) DEFAULT NULL,
+    mime_type                       VARCHAR(120) DEFAULT NULL,
+    tipo                            VARCHAR(30) DEFAULT NULL,
+    descripcion                     VARCHAR(500) DEFAULT NULL,
+
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL
+);
+
+ALTER TABLE consultas
+    ADD CONSTRAINT UK_consultas UNIQUE(cita, personal),
+    ADD CONSTRAINT FK_consultas_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    ADD CONSTRAINT FK_consultas_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
+    ADD CONSTRAINT FK_consultas_personal FOREIGN KEY(personal) REFERENCES personal(id),
+    ADD CONSTRAINT FK_consultas_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
+    ADD CONSTRAINT FK_consultas_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
+
+ALTER TABLE consultas_diagnosticos
+    ADD CONSTRAINT FK_consultasdiagnosticos_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    ADD CONSTRAINT FK_consultasdiagnosticos_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
+
+ALTER TABLE consultas_notas
+    ADD CONSTRAINT FK_consultasnotas_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    ADD CONSTRAINT FK_consultasnotas_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
+
+ALTER TABLE consultas_indicaciones
+    ADD CONSTRAINT FK_consultasindicaciones_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    ADD CONSTRAINT FK_consultasindicaciones_indicacion FOREIGN KEY(indicacion) REFERENCES indicaciones(id),
+    ADD CONSTRAINT FK_consultasindicaciones_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
+
+ALTER TABLE consultas_archivos
+    ADD CONSTRAINT FK_consultasarchivos_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    ADD CONSTRAINT FK_consultasarchivos_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
+
+CREATE TABLE consultas_modulos (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    codigo                          VARCHAR(50) NOT NULL UNIQUE,
+    nombre                          VARCHAR(100) NOT NULL,
+    descripcion                     VARCHAR(255) NULL,
+
+    orden_default                   INT NOT NULL DEFAULT 0,
+    activo                          TINYINT NOT NULL DEFAULT 1,
+
+    f_registro                      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO consultas_modulos (
+    uuid,
+    codigo,
+    nombre,
+    descripcion,
+    orden_default
+) VALUES
+(
+    X'0193f7b44b217a309b4c2c2a6a001001',
+    'observacion_inicial',
+    'Observación inicial',
+    'Motivo de consulta y observaciones iniciales del paciente',
+    1
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001002',
+    'exploracion_podologica',
+    'Exploración podológica',
+    'Evaluación clínica general de los pies',
+    2
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001003',
+    'procedimientos',
+    'Procedimientos realizados',
+    'Procedimientos y tratamientos aplicados durante la consulta',
+    3
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001004',
+    'diagnosticos',
+    'Diagnósticos',
+    'Diagnósticos identificados durante la consulta',
+    4
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001005',
+    'lesiones_ulceras',
+    'Lesiones y úlceras',
+    'Registro y seguimiento de lesiones, heridas y úlceras',
+    5
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001006',
+    'plantillas',
+    'Recomendación de plantillas',
+    'Recomendación de plantillas ortopédicas o soportes',
+    6
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001007',
+    'evidencia-fotografica',
+    'Evidencia Fotográfica',
+    'Fotografías antes y después del tratamiento',
+    7
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001008',
+    'indicaciones',
+    'Indicaciones',
+    'Indicaciones y recomendaciones para el paciente',
+    8
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001009',
+    'proxima_cita',
+    'Próxima cita',
+    'Programación y seguimiento de próxima consulta',
+    9
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001010',
+    'archivos_adjuntos',
+    'Archivos adjuntos',
+    'Documentos y archivos relacionados con la consulta',
+    10
+),
+(
+    X'0193f7b44b217a309b4c2c2a6a001011',
+    'evolucion',
+    'Evolución',
+    'Notas de evolución y seguimiento clínico',
+    11
+);
+
+CREATE TABLE servicios_consulta_modulos (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+
+    servicio                        SMALLINT NOT NULL,
+    modulo                          INT NOT NULL,
+
+    obligatorio                     TINYINT NOT NULL DEFAULT 0,
+    visible                         TINYINT NOT NULL DEFAULT 1,
+    orden                           INT NOT NULL DEFAULT 0,
+
+    activo                          TINYINT NOT NULL DEFAULT 1,
+
+    f_registro                      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_servicio_modulo (servicio, modulo),
+    CONSTRAINT FK_scm_servicio FOREIGN KEY (servicio) REFERENCES servicios(id),
+    CONSTRAINT FK_scm_modulo FOREIGN KEY (modulo) REFERENCES consultas_modulos(id)
+);
+
+CREATE TABLE consultas_procedimientos (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    consulta                        INT NOT NULL,
+    servicio                        SMALLINT NOT NULL,
+
+    cantidad                        NUMERIC(18,2) NOT NULL DEFAULT 1,
+    precio_unitario                 NUMERIC(18,2) NOT NULL DEFAULT 0,
+    bonificacion                    NUMERIC(18,2) NOT NULL DEFAULT 0,
+    total                           NUMERIC(18,2) NOT NULL DEFAULT 0,
+
+    cobrable                        TINYINT NOT NULL DEFAULT 1,
+    origen                          VARCHAR(20) NOT NULL DEFAULT 'manual',
+    observaciones                   TEXT NULL,
+
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+
+    CONSTRAINT FK_consultasprocedimientos_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    CONSTRAINT FK_consultasprocedimientos_servicio FOREIGN KEY(servicio) REFERENCES servicios(id),
+    CONSTRAINT FK_consultasprocedimientos_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
+);
+
+CREATE TABLE consultas_evidencia (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    consulta                        INT NOT NULL,
+    uuid                            BINARY(16) NOT NULL,
+    tipo                            ENUM('antes', 'despues') NOT NULL,
+    extension                       VARCHAR(15) NOT NULL,
+    ancho                           INT NOT NULL,
+    alto                            INT NOT NULL,
+    peso                            INT NOT NULL,
+    peso_miniatura                  INT NOT NULL,
+    hash                            CHAR(64) NOT NULL,
+    hash_miniatura                  CHAR(64) NOT NULL,
+    raiz                            TEXT NOT NULL,
+    archivo                         TEXT NOT NULL,
+    raiz_miniatura                  TEXT NOT NULL,
+    miniatura                       TEXT NOT NULL,
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    
+    INDEX idx_consulta (consulta),
+    CONSTRAINT FK_consultasevidencia_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    CONSTRAINT FK_consultasevidencia_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
 CREATE TABLE plantillas_estatus (
@@ -1031,7 +1497,6 @@ CREATE TABLE servicios_consentimientos (
     obligatorio         BOOLEAN NOT NULL DEFAULT 1,
     vigencia_dias       INT DEFAULT NULL,
     activo              BOOLEAN NOT NULL DEFAULT 1,
-
     CONSTRAINT FK_serviciosconsentimientos_servicio FOREIGN KEY(servicio) REFERENCES servicios(id),
     CONSTRAINT FK_serviciosconsentimientos_plantilla FOREIGN KEY(plantilla) REFERENCES consentimientos_plantillas(id)
 );
@@ -1087,11 +1552,31 @@ CREATE TABLE pacientes_consentimientos (
     CONSTRAINT FK_pacientesconsentimientos_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
+CREATE TABLE lateralidades (
+    id                              TINYINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(10) NOT NULL UNIQUE,
+    lateralidad                     VARCHAR(30) NOT NULL
+);
+
+INSERT INTO lateralidades (codigo, lateralidad) VALUES
+('IZQ', 'Izquierdo'),
+('DER', 'Derecho'),
+('AMB', 'Ambos');
+
 CREATE TABLE tipos_pies (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
     tipo                            VARCHAR(60) NOT NULL
 );
+
+INSERT INTO tipos_pies (codigo, tipo) VALUES
+('NORMAL', 'Pie normal'),
+('PLANO', 'Pie plano'),
+('CAVO', 'Pie cavo'),
+('VALGO', 'Pie valgo'),
+('VARO', 'Pie varo'),
+('MIXTO', 'Pie mixto'),
+('NO_DEFINIDO', 'No definido');
 
 CREATE TABLE tipos_pulso (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -1099,11 +1584,25 @@ CREATE TABLE tipos_pulso (
     tipo                            VARCHAR(60) NOT NULL
 );
 
+INSERT INTO tipos_pulso (codigo, tipo) VALUES
+('AUSENTE', 'Ausente'),
+('DEBIL', 'Débil'),
+('NORMAL', 'Normal'),
+('AUMENTADO', 'Aumentado'),
+('IRREGULAR', 'Irregular');
+
 CREATE TABLE tipos_temperatura_pie (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
     tipo                            VARCHAR(60) NOT NULL
 );
+
+INSERT INTO tipos_temperatura_pie (codigo, tipo) VALUES
+('MUY_FRIO', 'Muy frío'),
+('FRIO', 'Frío'),
+('NORMAL', 'Normal'),
+('CALIENTE', 'Caliente'),
+('MUY_CALIENTE', 'Muy caliente');
 
 CREATE TABLE tipos_sensibilidad (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -1111,11 +1610,24 @@ CREATE TABLE tipos_sensibilidad (
     tipo                            VARCHAR(60) NOT NULL
 );
 
+INSERT INTO tipos_sensibilidad (codigo, tipo) VALUES
+('CONSERVADA', 'Conservada'),
+('DISMINUIDA', 'Disminuida'),
+('AUSENTE', 'Ausente'),
+('HIPERSENSIBLE', 'Hipersensible'),
+('ALTERADA', 'Alterada');
+
 CREATE TABLE formula_metatarsal (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
     formula                            VARCHAR(60) NOT NULL
 );
+
+INSERT INTO formula_metatarsal (codigo, formula) VALUES
+('INDEX_PLUS', 'Index Plus'),
+('INDEX_MINUS', 'Index Minus'),
+('INDEX_PLUS_MINUS', 'Index Plus Minus'),
+('NO_DEFINIDA', 'No definida');
 
 CREATE TABLE tipos_coloracion_pie (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -1123,11 +1635,18 @@ CREATE TABLE tipos_coloracion_pie (
     tipo                            VARCHAR(60) NOT NULL
 );
 
+INSERT INTO tipos_coloracion_pie (codigo, tipo) VALUES
+('NORMAL', 'Normal'),
+('PALIDO', 'Pálido'),
+('ROJIZO', 'Rojizo'),
+('CIANOTICO', 'Cianótico'),
+('OSCURECIDO', 'Oscurecido');
+
 CREATE TABLE exploracion_podologica (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     paciente                        INT NOT NULL,
-    cita                            INT NOT NULL,
+    consulta                        INT NOT NULL,
     personal                        INT NOT NULL,
     tipo_pie                        SMALLINT DEFAULT NULL,
     formula_metatarsal              SMALLINT DEFAULT NULL,
@@ -1142,8 +1661,10 @@ CREATE TABLE exploracion_podologica (
     recomendaciones                 TEXT DEFAULT NULL,
     f_exploracion                   DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    registro                        INT NOT NULL,
+    CONSTRAINT UK_exploracionpodologica UNIQUE(consulta),
     CONSTRAINT FK_exploracionpodologica_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
-    CONSTRAINT FK_exploracionpodologica_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    CONSTRAINT FK_exploracionpodologica_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_exploracionpodologica_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_exploracionpodologica_tipopie FOREIGN KEY(tipo_pie) REFERENCES tipos_pies(id),
     CONSTRAINT FK_exploracionpodologica_formulametatarsal FOREIGN KEY(formula_metatarsal) REFERENCES formula_metatarsal(id),
@@ -1152,7 +1673,8 @@ CREATE TABLE exploracion_podologica (
     CONSTRAINT FK_exploracionpodologica_sensibilidadderecho FOREIGN KEY(sensibilidad_derecho) REFERENCES tipos_sensibilidad(id),
     CONSTRAINT FK_exploracionpodologica_sensibilidadizquierdo FOREIGN KEY(sensibilidad_izquierdo) REFERENCES tipos_sensibilidad(id),
     CONSTRAINT FK_exploracionpodologica_temperaturapies FOREIGN KEY(temperatura_pies) REFERENCES tipos_temperatura_pie(id),
-    CONSTRAINT FK_exploracionpodologica_coloracionpies FOREIGN KEY(coloracion_pies) REFERENCES tipos_coloracion_pie(id)
+    CONSTRAINT FK_exploracionpodologica_coloracionpies FOREIGN KEY(coloracion_pies) REFERENCES tipos_coloracion_pie(id),
+    CONSTRAINT FK_exploracionpodologica_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
 
@@ -1172,7 +1694,7 @@ CREATE TABLE parametros_medicos (
 CREATE TABLE seguimiento_parametros (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    cita                            INT DEFAULT NULL,
+    consulta                        INT DEFAULT NULL,
     paciente                        INT NOT NULL,
     personal                        INT NOT NULL,
     parametro                       SMALLINT NOT NULL,
@@ -1180,7 +1702,7 @@ CREATE TABLE seguimiento_parametros (
     observaciones                   VARCHAR(1024) DEFAULT NULL,
     f_medicion                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
-    CONSTRAINT FK_seguimientoparametros_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    CONSTRAINT FK_seguimientoparametros_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_seguimientoparametros_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_seguimientoparametros_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_seguimientoparametros_parametro FOREIGN KEY(parametro) REFERENCES parametros_medicos(id)
@@ -1197,7 +1719,7 @@ CREATE TABLE pacientes_tratamientos_podologicos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     paciente                        INT NOT NULL,
-    cita                            INT NOT NULL,
+    consulta                            INT NOT NULL,
     personal                        INT NOT NULL,
     tipo_tratamiento                SMALLINT NOT NULL,
     descripcion                     VARCHAR(1024) DEFAULT NULL,
@@ -1208,10 +1730,33 @@ CREATE TABLE pacientes_tratamientos_podologicos (
     f_proxima_revision              DATETIME DEFAULT NULL,
     f_actualizacion                 DATETIME NOT NULL,
     CONSTRAINT FK_pacientestratamientospodologicos_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
-    CONSTRAINT FK_pacientestratamientospodologicos_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    CONSTRAINT FK_pacientestratamientospodologicos_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_pacientestratamientospodologicos_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_pacientestratamientospodologicos_tipotratamiento FOREIGN KEY(tipo_tratamiento) REFERENCES tipos_tratamiento(id)
 );
+
+CREATE TABLE tipos_lesiones (
+    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(20) NOT NULL UNIQUE,
+    tipo                            VARCHAR(40) NOT NULL
+);
+
+INSERT INTO tipos_lesiones(codigo, tipo) VALUES
+('ulcera', 'Úlcera'),
+('herida', 'Herida'),
+('ampolla', 'Ampolla'),
+('fisura', 'Fisura'),
+('heloma_ulcerado', 'Heloma Ulcerado'),
+('verruga', 'Verruga Plantar'),
+('erosion', 'Erosión'),
+('escoriacion', 'Escoriación'),
+('abrasion', 'Abrasión'),
+('quemadura', 'Quemadura'),
+('hematoma', 'Hematoma'),
+('laceracion', 'Laceración'),
+('incision', 'Incisión'),
+('puncion', 'Punción'),
+('otra', 'Otra');
 
 CREATE TABLE tipos_localizacion_lesion (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -1222,14 +1767,33 @@ CREATE TABLE tipos_localizacion_lesion (
 CREATE TABLE tipos_evolucion (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
-    evolucion                       VARCHAR(40) NOT NULL
+    tipo                            VARCHAR(40) NOT NULL
 );
+
+INSERT INTO tipos_evolucion(codigo, tipo) VALUES
+('nueva', 'Nueva'),
+('estable', 'Estable'),
+('mejorando', 'Mejorando'),
+('empeorando', 'Empeorando'),
+('cicatrizando', 'Cicatrizando'),
+('resuelta', 'Resuelta'),
+('recidivante', 'Recidivante');
 
 CREATE TABLE tipos_tejido (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
-    tejido                          VARCHAR(40) NOT NULL
+    tipo                            VARCHAR(40) NOT NULL
 );
+
+INSERT INTO tipos_tejido(codigo, tipo) VALUES
+('epitelial', 'Tejido Epitelial'),
+('granulacion', 'Tejido de Granulación'),
+('fibrinoso', 'Tejido Fibrinoso'),
+('esfacelado', 'Tejido Esfacelado'),
+('necrotico', 'Tejido Necrótico'),
+('mixto', 'Mixto'),
+('hiperqueratosico', 'Tejido Hiperqueratósico'),
+('desconocido', 'No Determinado');
 
 CREATE TABLE grado_wagner (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -1245,24 +1809,16 @@ INSERT INTO grado_wagner(codigo, grado, descripcion) VALUES('grado-0', 'Grado 0'
                                                                 ('grado-4', 'Grado 4', 'Gangrena limitada. Necrosis en una zona del pie, en los dedos, talón o planta.'),
                                                                 ('grado-5', 'Grado 5', 'Gangrena extensa. La gangrena se extiende e invade todo el pie.');
 
-CREATE TABLE pie_lado (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
-    codigo                          VARCHAR(20) NOT NULL UNIQUE,
-    lado                            VARCHAR(40) NOT NULL
-);
-
-INSERT INTO pie_lado(codigo, lado) VALUES('derecho', 'Pie derecho'),
-                                                ('izquierdo', 'Pie izquierdo');
 
 CREATE TABLE seguimiento_pie_diabetico (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    cita                            INT DEFAULT NULL,
+    consulta                        INT DEFAULT NULL,
     paciente                        INT NOT NULL,
     personal                        INT NOT NULL,
     grado_wagner                    SMALLINT NOT NULL,
     localizacion_lesion             SMALLINT NOT NULL,
-    pie_afectado                    SMALLINT NOT NULL,
+    pie_afectado                    TINYINT NOT NULL,
     tamanyo_lesion_cm               NUMERIC(6, 4) NOT NULL DEFAULT 0,
     profundidad_lesion_cm           NUMERIC(6, 4) NOT NULL DEFAULT 0,
     presenta_infeccion              SMALLINT NOT NULL DEFAULT 0,
@@ -1275,12 +1831,12 @@ CREATE TABLE seguimiento_pie_diabetico (
     f_seguimiento                   DATETIME NOT NULL,
     f_proximo_control               DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
-    CONSTRAINT FK_seguimientopiediabetico_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    CONSTRAINT FK_seguimientopiediabetico_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_seguimientopiediabetico_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_seguimientopiediabetico_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_seguimientopiediabetico_gradowagner FOREIGN KEY(grado_wagner) REFERENCES grado_wagner(id),
     CONSTRAINT FK_seguimientopiediabetico_localizacionlesion FOREIGN KEY(localizacion_lesion) REFERENCES tipos_localizacion_lesion(id),
-    CONSTRAINT FK_seguimientopiediabetico_pieafectado FOREIGN KEY(pie_afectado) REFERENCES pie_lado(id),
+    CONSTRAINT FK_seguimientopiediabetico_pieafectado FOREIGN KEY(pie_afectado) REFERENCES lateralidades(id),
     CONSTRAINT FK_seguimientopiediabetico_evolucion FOREIGN KEY(evolucion) REFERENCES tipos_evolucion(id),
     CONSTRAINT FK_seguimientopiediabetico_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
@@ -1291,11 +1847,30 @@ CREATE TABLE tipos_exudado (
     tipo                            VARCHAR(40) NOT NULL
 );
 
+INSERT INTO tipos_exudado(codigo, tipo) VALUES
+('ninguno', 'Ninguno'),
+('leve', 'Leve'),
+('moderado', 'Moderado'),
+('abundante', 'Abundante'),
+('purulento', 'Purulento'),
+('sanguinolento', 'Sanguinolento'),
+('seroso', 'Seroso');
+
 CREATE TABLE color_exudado (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
     color                           VARCHAR(40) NOT NULL
 );
+
+INSERT INTO color_exudado(codigo, color) VALUES
+('transparente', 'Transparente'),
+('seroso', 'Seroso'),
+('serosanguinolento', 'Serosanguinolento'),
+('sanguinolento', 'Sanguinolento'),
+('amarillo', 'Amarillo'),
+('verdoso', 'Verdoso'),
+('marron', 'Marrón'),
+('purulento', 'Purulento');
 
 CREATE TABLE tipos_dolor (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -1303,10 +1878,50 @@ CREATE TABLE tipos_dolor (
     dolor                           VARCHAR(40) NOT NULL
 );
 
+CREATE TABLE consultas_lesiones_ulceras (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    consulta                        INT NOT NULL,
+
+    tipo_lesion                     SMALLINT NOT NULL,
+    lateralidad                     TINYINT DEFAULT NULL,
+    ubicacion                       VARCHAR(255) DEFAULT NULL,
+
+    largo_cm                        DECIMAL(6,2) DEFAULT NULL,
+    ancho_cm                        DECIMAL(6,2) DEFAULT NULL,
+    profundidad_cm                  DECIMAL(6,2) DEFAULT NULL,
+
+    grado_wagner                    SMALLINT DEFAULT NULL,
+    tipo_tejido                     SMALLINT DEFAULT NULL,
+    tipo_evolucion                  SMALLINT DEFAULT NULL,
+    tipo_exudado                    SMALLINT DEFAULT NULL,
+    color_exudado                   SMALLINT DEFAULT NULL,
+
+    signos_infeccion                TINYINT NOT NULL DEFAULT 0,
+    dolor                           TINYINT DEFAULT NULL,
+
+    observaciones                   TEXT DEFAULT NULL,
+
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
+
+    CONSTRAINT FK_consultaslesiones_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    CONSTRAINT FK_consultaslesiones_tipolesion FOREIGN KEY(tipo_lesion) REFERENCES tipos_lesiones(id),
+    CONSTRAINT FK_consultaslesiones_lateralidad FOREIGN KEY(lateralidad) REFERENCES lateralidades(id),
+    CONSTRAINT FK_consultaslesiones_wagner FOREIGN KEY(grado_wagner) REFERENCES grado_wagner(id),
+    CONSTRAINT FK_consultaslesiones_tejido FOREIGN KEY(tipo_tejido) REFERENCES tipos_tejido(id),
+    CONSTRAINT FK_consultaslesiones_evolucion FOREIGN KEY(tipo_evolucion) REFERENCES tipos_evolucion(id),
+    CONSTRAINT FK_consultaslesiones_exudado FOREIGN KEY(tipo_exudado) REFERENCES tipos_exudado(id),
+    CONSTRAINT FK_consultaslesiones_colorexudado FOREIGN KEY(color_exudado) REFERENCES color_exudado(id),
+    CONSTRAINT FK_consultaslesiones_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
+);
+
 CREATE TABLE registro_ulceras (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    cita                            INT DEFAULT NULL,
+    consulta                        INT DEFAULT NULL,
     paciente                        INT NOT NULL,
     personal                        INT NOT NULL,
     ubicacion_anatomica             VARCHAR(255) NOT NULL,
@@ -1328,7 +1943,7 @@ CREATE TABLE registro_ulceras (
     f_curacion                      DATETIME NOT NULL,
     f_proxima_curacion              DATETIME DEFAULT NULL,
     f_actualizacion                 DATETIME NOT NULL,
-    CONSTRAINT FK_registroulceras_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    CONSTRAINT FK_registroulceras_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_registroulceras_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_registroulceras_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_registroulceras_pieafectado FOREIGN KEY(pie_afectado) REFERENCES pie_lado(id),
@@ -1360,7 +1975,7 @@ CREATE TABLE tipos_plantillas (
 CREATE TABLE plantillas_ortesis (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    cita                            INT DEFAULT NULL,
+    consulta                            INT DEFAULT NULL,
     paciente                        INT NOT NULL,
     personal                        INT NOT NULL,
     plantilla                       SMALLINT NOT NULL,
@@ -1375,7 +1990,7 @@ CREATE TABLE plantillas_ortesis (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
-    CONSTRAINT FK_plantillasortesis_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    CONSTRAINT FK_plantillasortesis_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_plantillasortesis_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_plantillasortesis_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_plantillasortesis_plantilla FOREIGN KEY(plantilla) REFERENCES tipos_plantillas(id),
@@ -1614,27 +2229,44 @@ CREATE TABLE ventas_estatus (
     estatus                         VARCHAR(60) NOT NULL
 );
 
+INSERT INTO ventas_estatus(codigo, estatus) VALUES('pendiente', 'Pendiente'),
+                                                ('pagado', 'Pagado'),
+                                                ('cancelado', 'Cancelado');
+
 CREATE TABLE ventas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    folio                           VARCHAR(10) NOT NULL UNIQUE,
+    folio                           VARCHAR(15) NOT NULL UNIQUE,
     consecutivo                     SMALLINT NOT NULL,
-    f_venta                         DATETIME NOT NULL,
-    cliente                         INT NOT NULL,
+    consulta                        INT DEFAULT NULL,
+    cita                            INT DEFAULT NULL,
     paciente                        INT NOT NULL,
-    registro                        INT NOT NULL,
     subtotal                        NUMERIC(18, 2) NOT NULL DEFAULT 0,
     impuestos                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
     total                           NUMERIC(18, 2) NOT NULL DEFAULT 0,
     descuento                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    pagado                          NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    adeudo                          NUMERIC(18, 2) NOT NULL DEFAULT 0,
     estatus                         SMALLINT NOT NULL,
     observaciones                   VARCHAR(1024) NOT NULL,
+    registro                        INT NOT NULL,
+    f_venta                         DATETIME NOT NULL,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
-    CONSTRAINT FK_ventas_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
+    f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_ventas_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    CONSTRAINT FK_ventas_cita FOREIGN KEY(cita) REFERENCES citas(id),
     CONSTRAINT FK_ventas_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_ventas_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
     CONSTRAINT FK_ventas_estatus FOREIGN KEY(estatus) REFERENCES ventas_estatus(id)
+);
+
+CREATE TABLE folios_consecutivos (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    tipo                            VARCHAR(30) NOT NULL,
+    ejercicio                       SMALLINT NOT NULL,
+    consecutivo                     INT NOT NULL DEFAULT 0,
+
+    CONSTRAINT UK_foliosconsecutivos UNIQUE(tipo, ejercicio)
 );
 
 CREATE TABLE tipos_descuentos (
@@ -1643,23 +2275,31 @@ CREATE TABLE tipos_descuentos (
     descuento                       VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE ventas_productos (
+CREATE TABLE ventas_detalles (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     venta                           INT NOT NULL,
-    producto                        INT NOT NULL,
-    cita                            INT DEFAULT NULL,
-    cantidad                        NUMERIC(12, 4) NOT NULL DEFAULT 0,
-    precio_base                     NUMERIC(18, 2) NOT NULL DEFAULT 0,
-    subtotal                        NUMERIC(18, 2) NOT NULL DEFAULT 0,
-    impuestos                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
-    total                           NUMERIC(18, 2) NOT NULL DEFAULT 0,
-    descuento                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    servicio                        SMALLINT DEFAULT NULL,
+    producto                        INT DEFAULT NULL,
+    descripcion                     VARCHAR(255) NOT NULL,
+    cantidad                        NUMERIC(12,4) NOT NULL DEFAULT 1,
+    precio_base                     NUMERIC(18,2) NOT NULL DEFAULT 0,
+    subtotal                        NUMERIC(18,2) NOT NULL DEFAULT 0,
+    impuestos                       NUMERIC(18,2) NOT NULL DEFAULT 0,
+    total                           NUMERIC(18,2) NOT NULL DEFAULT 0,
+    descuento                       NUMERIC(18,2) NOT NULL DEFAULT 0,
+    adeudo                          NUMERIC(18,2) NOT NULL DEFAULT 0,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
-    CONSTRAINT FK_ventasproductos_venta FOREIGN KEY(venta) REFERENCES ventas(id),
-    CONSTRAINT FK_ventasproductos_producto FOREIGN KEY(producto) REFERENCES productos(id),
-    CONSTRAINT FK_ventasproductos_cita FOREIGN KEY(cita) REFERENCES citas(id)
+    f_actualizacion                 DATETIME DEFAULT NULL,
+
+    CONSTRAINT FK_ventasdetalles_venta FOREIGN KEY (venta) REFERENCES ventas(id),
+    CONSTRAINT FK_ventasdetalles_servicio FOREIGN KEY (servicio) REFERENCES servicios(id),
+    CONSTRAINT FK_ventasdetalles_producto FOREIGN KEY(producto) REFERENCES productos(id),
+    CHECK (
+        (servicio IS NOT NULL AND producto IS NULL)
+        OR
+        (servicio IS NULL AND producto IS NOT NULL)
+    )
 );
 
 CREATE TABLE metodos_pago (

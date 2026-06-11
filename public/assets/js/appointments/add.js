@@ -2,7 +2,7 @@
 
 var homeURL;
 var searchTimer = null, searchValue = '';
-var selected_patient = -1;
+var selected_patient = '';
 
 var procedures = [];
 var totalTime = 0, totalCost = 0;
@@ -197,10 +197,11 @@ function GetProcedures() {
 		contentType: false,
 		dataType: "json",
 		success: function(response) {
+			console.log(response);
 			$.each(response.data.procedures, function(k, v) {
 				$('#select-servicio').append($('<option>', {
 					value: v.id,
-					text: v.servicio
+					text: v.procedure
 				}));
 			});
 			$('#select-servicio').trigger('change');
@@ -228,10 +229,11 @@ function GetProceduresStaff() {
 		contentType: false,
 		dataType: "json",
 		success: function(response) {
+			console.log(response);
 			$.each(response.data.staff, function(k, v) {
 				$('#select-servicio-atiende').append($('<option>', {
 					value: v.id,
-					text: `${v.nombre} (${accounting.formatMoney(v.costo)})`
+					text: `${v.name} (${accounting.formatMoney(v.cost)})`
 				}));
 			});
 		},
@@ -260,27 +262,27 @@ function SearchPatients() {
 		success: function(response) {
 			var rows = '';
 			$.each(response.data.patients, function(k, v) {
-				rows += `<tr class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer" onclick="javascript:SelectPatient(${v.id}, '${escapeHTML(v.clave)}', '${escapeHTML(v.nombre)}');">
+				rows += `<tr class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer" onclick="javascript:SelectPatient('${v.id}', '${escapeHTML(v.code)}', '${escapeHTML(v.name)}');">
                             <td class="px-4 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-                                <span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.clave}</span>
+                                <span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.code}</span>
                             </td>
                             <td class="px-4 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-								${v.nombre}
+								${v.name}
 							</td>
                             <td class="px-4 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-								${v.f_nacimiento}
+								${v.dob}
 							</td>
                             <td class="px-4 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-                                ${v.genero}
+                                ${v.gender}
 							</td>
                             <td class="px-4 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-                                ${v.telefono}
+                                ${v.phone}
 							</td>
                             <td class="px-4 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-                                ${v.movil}
+                                ${v.mobile}
 							</td>
                             <td class="px-4 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-                                ${v.f_ultima_visita}
+                                ${v.last_visit_date}
 							</td>
                         </tr>`;
 			});
@@ -307,7 +309,7 @@ function AgregarServicio() {
 	var staff = $('#select-servicio-atiende').val();
 	var duplicate = false;
 	$.each(procedures, function(k, v) {
-		if(parseInt(v.procedureId) == parseInt(procedure)) {
+		if(v.procedureId == procedure) {
 			ShowToastMessage('El servicio seleccionado ya se encuentra en la lista', 'error');
 			duplicate = true;
 			return;
@@ -332,7 +334,7 @@ function AgregarServicio() {
 											response.data.nombre,
 											response.data.costo,
 											response.data.duracion
-			))
+			));
 			$('.procedimientos-agregados').append(`<li id="procedimiento-agregado-${response.data.id}" class="p-2 border border-primary rounded-10 last:mb-0 mb-[20px] flex items-center justify-between">
 													<div class="flex items-center gap-[15px]">
 														<div>
@@ -481,7 +483,7 @@ function SelectAppointmentDate(index) {
 }
 
 function RegisterAppointment() {
-	if(selected_patient == -1) {
+	if(selected_patient == '') {
 		ShowToastMessage('Selecciona un paciente para continuar', 'error');
 		return;
 	}
@@ -496,21 +498,23 @@ function RegisterAppointment() {
 	formData.append('appointment', JSON.stringify(selected_slot));
 	formData.append('chief_complaint', $('#field-motivo-consulta').val());
 	$.ajax({
-			url: `${homeURL}/api/appointments`,
-			type: 'post',
-			data: formData,
-        	processData: false,
-			contentType: false,
-			dataType: "json",
-			success: function(response) {
-				console.log(response);
-			},
-			error: function(XMLHttpRequest, textStatus, errorThrown) { 
-				console.log('STATUS:', textStatus);
-				console.log('ERROR:', errorThrown);
-				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
+		url: `${homeURL}/api/appointments`,
+		type: 'post',
+		data: formData,
+		processData: false,
+		contentType: false,
+		dataType: "json",
+		success: function(response) {
+			if(response.status == 'OK') {
+				window.location.href = `${homeURL}/appointments?action=schedule-success?appointment=${response.data.id}`
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			console.log('STATUS:', textStatus);
+			console.log('ERROR:', errorThrown);
+			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
 
-				alert(XMLHttpRequest.responseText);
-			}  
-		});
+			alert(XMLHttpRequest.responseText);
+		}  
+	});
 }

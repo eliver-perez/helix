@@ -212,7 +212,7 @@ abstract class Service
     }
 
     protected function calculateAge(string $dob): string {
-        $aux = new \DateTime($dob);
+        $aux = \DateTime::createFromFormat('d/m/Y', $dob);
         $hoy = new \DateTime();
 
         $diff = $hoy->diff($aux);
@@ -230,5 +230,27 @@ abstract class Service
         }
 
         return "{$days} días";
+    }
+
+    protected function minutesToTime(int $minutes): string {
+        $hours = intdiv($minutes, 60);
+        $mins = $minutes % 60;
+
+        return sprintf('%02d:%02d', $hours, $mins);
+    }
+
+    protected function timeToMinutes(string $time): int {
+        if (!preg_match('/^(\d{1,2}):(\d{2})(?::\d{2})?$/', $time, $matches)) {
+            throw new InvalidArgumentException("Formato de hora inválido: {$time}");
+        }
+
+        $h = (int) $matches[1];
+        $m = (int) $matches[2];
+
+        if ($h < 0 || $h > 23 || $m < 0 || $m > 59) {
+            throw new InvalidArgumentException("Hora fuera de rango: {$time}");
+        }
+
+        return ($h * 60) + $m;
     }
 }

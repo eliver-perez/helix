@@ -12,6 +12,7 @@ function preloader(param) {
   window.addEventListener('load', function () {
     if (preloader) {
       preloader.classList.add("show")
+      toggleTopMenu();
     }
   });
 };
@@ -97,34 +98,23 @@ function enableRtlMode() {
 
 /* Top Menu Toggle */
 function toggleTopMenu() {
-  const topMenuToggle = document.getElementById('topMenuToggle');
-  const target = document.getElementById('asideBar');
-  const target2 = document.getElementById('navBar');
+  // const target = document.getElementById('asideBar');
+  // const target2 = document.getElementById('navBar');
   const body = document.getElementById('content');
   const limToggler = document.getElementById('slim-toggler');
   const topMenuWrapper = document.getElementById('topMenuWrapper');
   const topMenuLogo = document.getElementById('topMenu-logo');
-  if (topMenuToggle && target && body && limToggler && topMenuWrapper && topMenuLogo) {
-    function setTopMenuStyle() {
-      target.classList.toggle('TopCollapsed')
-      target2.classList.toggle('TopCollapsed')
+  // console.log(topMenuWrapper);
+  if (body && limToggler && topMenuWrapper && topMenuLogo) {
+      // target.classList.toggle('TopCollapsed')
+      // target2.classList.toggle('TopCollapsed')
       body.classList.toggle('TopExpanded')
-      limToggler.classList.toggle('hide', topMenuToggle.checked);
-      topMenuWrapper.classList.toggle('flex', topMenuToggle.checked);
-      topMenuWrapper.style.transition = topMenuToggle.checked ? 'all 0.3s linear 0s' : 'all 0.3s linear 0s';
-      topMenuLogo.classList.toggle('flex', topMenuToggle.checked);
-      topMenuLogo.style.transition = topMenuToggle.checked ? 'all 0.3s linear 0s' : 'all 0.3s linear 0s';
-      // localStorage.setItem('isTopMenuChecked', topMenuToggle.checked);
-    }
-
-    topMenuToggle.addEventListener('change', setTopMenuStyle);
-    // const isTopMenuChecked = localStorage.getItem('isTopMenuChecked');
-    // if (isTopMenuChecked === 'true') {
-    //   topMenuToggle.checked = true;
-    //   setTopMenuStyle();
-    // } else {
-    //   topMenuToggle.checked = false;
-    // }
+      limToggler.classList.toggle('hide', true);
+      topMenuWrapper.classList.toggle('flex', true);
+      topMenuWrapper.style.transition = true ? 'all 0.3s linear 0s' : 'all 0.3s linear 0s';
+      topMenuLogo.classList.toggle('flex', true);
+      topMenuLogo.style.transition = true ? 'all 0.3s linear 0s' : 'all 0.3s linear 0s';
+      localStorage.setItem('isTopMenuChecked', true);
   }
 };
 

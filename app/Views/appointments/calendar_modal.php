@@ -26,6 +26,7 @@
                             <i class="uil uil-message"></i>
                         </button>
                         <button type="button"
+                                id="btn-appointment-cancel"
                                 class="text-white hover:opacity-75">
                             <i class="uil uil-trash-alt"></i>
                         </button>
@@ -33,7 +34,7 @@
 
                         <button type="button"
                                 data-te-modal-dismiss
-                                class="text-white hover:opacity-75">
+                                class="text-white hover:opacity-75 appointment-modal-close">
                             <i class="uil uil-times"></i>
                         </button>
                 </div>
@@ -90,8 +91,8 @@
                         </button>
                     </div>
 
-                    <div class="flex flex-row-reverse items-center">
-                        <button type="button" class="px-[30px] h-[34px] mb-[10px] text-white bg-primary border-primary hover:bg-primary-hbr font-medium rounded-4 text-xs xs:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear" data-te-ripple-init="" data-te-ripple-color="light">Iniciar</button>
+                    <div class="flex flex-row-reverse items-center sec-check-in">
+                        <button type="button" id="btn-appointment-check-in" class="px-[30px] h-[34px] mb-[10px] text-white bg-primary border-primary hover:bg-primary-hbr font-medium rounded-4 text-xs xs:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear" data-te-ripple-init="" data-te-ripple-color="light">Check-In</button>
                     </div>
                 </div>
 

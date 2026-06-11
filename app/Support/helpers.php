@@ -69,3 +69,15 @@ function asset(string $path): string
     $base = rtrim(env('APP_URL', ''), '/');
     return $base . '/assets/' . ltrim($path, '/');
 }
+
+function is_uuid($value) {
+    return preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value);
+}
+
+function moduleEnabled(array $modules, string $module) : ?stdClass {
+    foreach($modules as $m) {
+        if($m->code === $module)
+            return $m;
+    }
+    return null;
+}

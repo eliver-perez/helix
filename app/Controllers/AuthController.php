@@ -49,14 +49,10 @@ class AuthController extends Controller
             $stmt = $conn->prepare("
                 SELECT u.id,
                        u.nombre,
-                       u.tipo_usuario AS tipo_usuario_id,
-                       ut.tipo AS tipo_usuario,
                        u.usuario,
                        u.password_hash,
                        u.activo
                 FROM usuarios u
-                INNER JOIN usuarios_tipos ut
-                    ON u.tipo_usuario = ut.id
                 WHERE u.usuario = :usuario
                 LIMIT 1
             ");
@@ -75,6 +71,38 @@ class AuthController extends Controller
 
             if ((int)$user['activo'] !== 1) {
                 return $response->json(['status' => 'FAIL_NOT_ACTIVE'], 403);
+            }
+
+            $stmt = $conn->prepare("
+                SELECT
+                uer.id,
+                e.uuid empresa_id,
+                e.empresa,
+                e.domicilio,
+                ut.id tipo_usuario_id,
+                ut.codigo tipo_usuario_codigo,
+                ut.tipo tipo_usuario
+                FROM usuarios_empresas_roles uer
+                    INNER JOIN empresas e
+                        ON uer.empresa = e.id
+                    INNER JOIN usuarios_tipos ut
+                        ON uer.tipo_usuario = ut.id
+                WHERE uer.usuario = :usuario
+                    AND uer.f_baja IS NULL
+            ");
+
+            $stmt->bindParam(':usuario', $user['id']);
+            $stmt->execute();
+            $data = $stmt->fetchAll();
+            $tipos_usuario = array();
+            foreach($data as $tu) {
+                array_push($tipos_usuario, array('id'                   => $tu['id'],
+                                                'empresa_id'            => $tu['empresa_id'],
+                                                'empresa'               => $tu['empresa'],
+                                                'domicilio'             => $tu['domicilio'],
+                                                'tipo_usuario_id'       => $tu['tipo_usuario_id'],
+                                                'tipo_usuario_codigo'   => $tu['tipo_usuario_codigo'],
+                                                'tipo_usuario'          => $tu['tipo_usuario']));
             }
 
             $conn->beginTransaction();
@@ -107,8 +135,11 @@ class AuthController extends Controller
             $_SESSION['HELIX_ERP_ID'] = (int)$user['id'];
             $_SESSION['HELIX_ERP_USER'] = $user['usuario'];
             $_SESSION['HELIX_ERP_NOMBRE'] = $user['nombre'];
-            $_SESSION['HELIX_ERP_TIPO_ID'] = (int)$user['tipo_usuario_id'];
-            $_SESSION['HELIX_ERP_TIPO'] = $user['tipo_usuario'];
+            $_SESSION['HELIX_ERP_USER_ROLE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['id'] : null;
+            $_SESSION['HELIX_ERP_USER_TYPE_CD'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario_codigo'] : null;
+            $_SESSION['HELIX_ERP_USER_TYPE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario'] : null;
+
+            $_SESSION['HELIX_ERP_AVAILABLE_ROLES'] = count($tipos_usuario) > 1 ? $tipos_usuario : null;
 
             $stmt = $conn->prepare("
                 INSERT INTO usuarios_sesiones
@@ -161,9 +192,7 @@ class AuthController extends Controller
                 'data' => [
                     'id' => (int)$user['id'],
                     'nombre' => $user['nombre'],
-                    'usuario' => $user['usuario'],
-                    'tipo_usuario_id' => (int)$user['tipo_usuario_id'],
-                    'tipo_usuario' => $user['tipo_usuario']
+                    'usuario' => $user['usuario']
                 ]
             ]);
         } catch (Throwable $e) {
@@ -225,6 +254,8 @@ class AuthController extends Controller
     // }
 
     public function logout(Request $request, Response $response) {
+        $salt = env('HMAC_SALT');
+
         $session = new Session();
         $database = new Database();
         $conn = $database->getConnection();
@@ -232,7 +263,7 @@ class AuthController extends Controller
         try {
             $conn->beginTransaction();
             $authentication_token_bin = hex2bin($session->getToken());
-            $authentication_token_hash = hash('sha256', $authentication_token_bin . $CFG->hmacsalt, true);
+            $authentication_token_hash = hash('sha256', $authentication_token_bin . $salt, true);
             
             $stmt = $conn->prepare('SELECT id, destruida_en FROM usuarios_sesiones WHERE usuario = :usuario AND token_hash = :token AND destruida_en IS NULL');
             $stmt->bindParam(':usuario', $id);
@@ -250,7 +281,7 @@ class AuthController extends Controller
             
             session_unset();     // unset $_SESSION variable for the run-time 
             session_destroy();   // destroy session data in storage
-            header("Location: ".$CFG->protocol.$CFG->host.$CFG->root."autenticacion/");
+            return $response->json(['status' => 'OK']);
         } catch(Exception $ex) {
             $conn->rollBack();
             echo json_encode(array('status' => 'FAIL'));
@@ -275,8 +306,6 @@ class AuthController extends Controller
                 'id' => $_SESSION['HELIX_ERP_ID'],
                 'usuario' => $_SESSION['HELIX_ERP_USER'] ?? null,
                 'nombre' => $_SESSION['HELIX_ERP_NOMBRE'] ?? null,
-                'tipo_usuario_id' => $_SESSION['HELIX_ERP_TIPO_ID'] ?? null,
-                'tipo_usuario' => $_SESSION['HELIX_ERP_TIPO'] ?? null,
                 'auth_time' => $_SESSION['HELIX_ERP_AUTH_TIME'] ?? null,
             ]
         ]);

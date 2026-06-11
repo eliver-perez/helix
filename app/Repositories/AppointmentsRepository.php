@@ -15,6 +15,180 @@ class AppointmentsRepository
         return $this->db;
     }
 
+    public function appointmentExistsByUuid(string $uuid): bool
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM citas
+            WHERE uuid = :uuid
+            LIMIT 1
+        ");
+        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function changeAppointmentStatus(array $data) {
+        $stmt = $this->db->prepare("
+            UPDATE citas
+            SET estatus = :status
+            WHERE uuid = :appointment");
+        $stmt->bindParam(':appointment', $data['appointment'], PDO::PARAM_LOB);
+        $stmt->bindParam(':status', $data['status']);
+        $stmt->execute();
+    }
+
+    public function finishAppointment(array $data) {
+        $stmt = $this->db->prepare("
+            UPDATE citas
+            SET estatus = :status,
+                termino_cita = :uid,
+                f_termino_cita = NOW()
+            WHERE uuid = :uuid");
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':status', $data['status']);
+        $stmt->bindParam(':uid', $data['uid']);
+        $stmt->execute();
+    }
+
+    public function cancelAppointmentBlocks(array $data) {
+        $stmt = $this->db->prepare("
+            UPDATE citas_bloques
+            SET estatus = :status
+            WHERE uuid = :appointment
+                AND estatus != :canceled
+                AND estatus != :refused
+                AND estatus != :no_assistance
+                AND estatus != :attended");
+        $stmt->bindParam(':appointment', $data['appointment'], PDO::PARAM_LOB);
+        $stmt->bindParam(':status', $data['status']['canceled']);
+        $stmt->bindParam(':canceled', $data['status']['canceled']);
+        $stmt->bindParam(':refused', $data['status']['refused']);
+        $stmt->bindParam(':no_assistance', $data['status']['noAssistance']);
+        $stmt->bindParam(':attended', $data['status']['attended']);
+        $stmt->execute();
+    }
+
+    public function getFirstAppointmentBlock(array $data): int {
+        $stmt = $this->db->prepare("
+            SELECT cb.id
+            FROM citas_bloques cb
+                INNER JOIN citas c
+                    ON cb.cita = c.id
+            WHERE c.uuid = :appointment
+                AND cb.estatus = :status
+            ORDER BY cb.h_inicio ASC
+            LIMIT 1
+        ");
+        $stmt->bindParam(':appointment', $data['appointment'], PDO::PARAM_LOB);
+        $stmt->bindParam(':status', $data['status']);
+        $stmt->execute();
+        $appointmentBlock = $stmt->fetchColumn();
+
+        if ($appointmentBlock === false) {
+            throw new \RuntimeException('No hay bloques de citas pendientes.');
+        }
+
+        return (int)$appointmentBlock;
+    }
+
+    public function changeAppointmentBlockStatus(array $data) {
+        $stmt = $this->db->prepare("
+            UPDATE citas_bloques
+            SET estatus = :status
+            WHERE id = :block");
+        $stmt->bindParam(':block', $data['block']);
+        $stmt->bindParam(':status', $data['status']);
+        $stmt->execute();
+    }
+
+    public function changeAppointmentBlockStatusByUuid(array $data) {
+        $stmt = $this->db->prepare("
+            UPDATE citas_bloques
+            SET estatus = :status
+            WHERE uuid = :block");
+        $stmt->bindParam(':block', $data['block'], PDO::PARAM_LOB);
+        $stmt->bindParam(':status', $data['status']);
+        $stmt->execute();
+    }
+
+    public function finishAppointmentBlock(array $data) {
+        $stmt = $this->db->prepare("
+            UPDATE citas_bloques
+            SET estatus = :status,
+                termino_cita = :uid,
+                f_termino_cita = NOW()
+            WHERE uuid = :block");
+        $stmt->bindParam(':block', $data['block'], PDO::PARAM_LOB);
+        $stmt->bindParam(':status', $data['status']);
+        $stmt->bindParam(':uid', $data['uid']);
+        $stmt->execute();
+    }
+
+    public function appointmentStatus(string $uuid): string {
+        $stmt = $this->db->prepare("
+            SELECT
+            ce.codigo
+            FROM citas c
+                INNER JOIN citas_estatus ce
+                    ON c.estatus = ce.id
+            WHERE uuid = :uuid
+        ");
+        
+        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $data != null ? $data['codigo'] : '';
+    }
+
+    public function getAppointmentId(string $uuid): ?int {
+        $stmt = $this->db->prepare("
+            SELECT
+            c.id
+            FROM citas c
+            WHERE c.uuid = :uuid
+        ");
+        
+        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $data != null ? $data['id'] : 0;
+    }
+
+    public function getAppointmentBlockId(string $uuid): ?int {
+        $stmt = $this->db->prepare("
+            SELECT
+            cb.id
+            FROM citas_bloques cb
+            WHERE cb.uuid = :uuid
+        ");
+        
+        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $data != null ? $data['id'] : 0;
+    }
+
+    public function getUnfinishedAppointmentBlocksCount($data): ?array {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) pendientes
+            FROM citas_bloques
+            WHERE cita = :uuid
+            AND estatus <> :status;
+            ");
+
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':status', $data['status'], PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch();
+
+        return $row != null ? $row : null;
+    }
+
     public function getCalendarAppointments(string $start, string $end): array {
         $stmt = $this->db->prepare("
             SELECT
@@ -36,6 +210,7 @@ class AppointmentsRepository
             c.motivo_consulta,
             c.h_inicio,
             c.h_fin,
+            ce.codigo estatus_codigo,
             ce.text_color,
             ce.classname,
             ce.background
@@ -60,21 +235,20 @@ class AppointmentsRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getProcedureCost(int $procedureId, int $staffId): float {
+    public function getProcedureCost(string $procedureId, string $staffId): float {
         $stmt = $this->db->prepare("
             SELECT ps.costo
             FROM servicios s
-            INNER JOIN personal_servicios ps
-                ON s.id = ps.servicio
-            WHERE s.id = :procedure_id
-                AND ps.personal = :staff_id
+                INNER JOIN personal_servicios ps
+                    ON s.id = ps.servicio
+                INNER JOIN personal p
+                    ON ps.personal = p.id
+            WHERE s.uuid = :procedure_uuid
+                AND p.uuid = :staff_uuid
         ");
-
-        $stmt->execute([
-            'procedure_id' => $procedureId,
-            'staff_id' => $staffId
-        ]);
-
+        $stmt->bindValue(':procedure_uuid', $procedureId, PDO::PARAM_LOB);
+        $stmt->bindValue(':staff_uuid', $staffId, PDO::PARAM_LOB);
+        $stmt->execute();
         $cost = $stmt->fetchColumn();
 
         if ($cost === false) {
@@ -84,7 +258,7 @@ class AppointmentsRepository
         return (float)$cost;
     }
 
-    public function getStaffName(int $staffId): string {
+    public function getStaffName(string $staffId): string {
         $stmt = $this->db->prepare("
             SELECT TRIM(
                 CONCAT(
@@ -94,13 +268,10 @@ class AppointmentsRepository
                 )
             )
             FROM personal
-            WHERE id = :id
+            WHERE uuid = :uuid
         ");
-
-        $stmt->execute([
-            'id' => $staffId
-        ]);
-
+        $stmt->bindValue(':uuid', $staffId, PDO::PARAM_LOB);
+        $stmt->execute();
         $name = $stmt->fetchColumn();
 
         if ($name === false) {
@@ -110,17 +281,14 @@ class AppointmentsRepository
         return $name;
     }
 
-    public function getProcedureName(int $procedureId): string {
+    public function getProcedureName(string $procedureId): string {
         $stmt = $this->db->prepare("
             SELECT servicio
             FROM servicios
-            WHERE id = :id
+            WHERE uuid = :uuid
         ");
-
-        $stmt->execute([
-            'id' => $procedureId
-        ]);
-
+        $stmt->bindValue(':uuid', $procedureId, PDO::PARAM_LOB);
+        $stmt->execute();
         $name = $stmt->fetchColumn();
 
         if ($name === false) {
@@ -130,7 +298,7 @@ class AppointmentsRepository
         return $name;
     }
 
-    public function getStaffAvailability(int $staffId, string $date, int $interval): array {
+    public function getStaffAvailability(string $staffId, string $date, int $interval): array {
         // 1. Día de la semana
         $weekday = (int)date('w', strtotime($date));
 
@@ -140,17 +308,18 @@ class AppointmentsRepository
         $stmt = $this->db->prepare("
             SELECT hld.hora_inicio AS start, hld.hora_fin AS end
             FROM horarios_laborales_detalles hld
-            JOIN horarios_laborales h
-                ON h.id = hld.horario
-            WHERE h.personal = :staff
+                JOIN horarios_laborales h
+                    ON h.id = hld.horario
+                INNER JOIN personal p
+                    ON h.personal = p.id
+            WHERE p.uuid = :staff_uuid
                 AND hld.dia_semana = :day
                 AND h.activo = 1
         ");
+        $stmt->bindValue(':staff_uuid', $staffId, PDO::PARAM_LOB);
+        $stmt->bindValue(':day', $weekday);
 
-        $stmt->execute([
-            'staff' => $staffId,
-            'day' => $weekday
-        ]);
+        $stmt->execute();
 
         $dayAvailability = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

@@ -19,7 +19,7 @@
         
         <div class="p-[25px] pt-0">
         <div class="max-h-[320px] scrollbar overflow-y-auto">
-            <div id="as-today" role="tabpanel" data-te-tab-active class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block">
+            <div data-te-tab-active class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block">
                 <table class="min-w-full text-sm font-light text-left whitespace-nowrap" id="table-patients">
                     <thead>
                         <tr>

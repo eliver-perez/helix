@@ -28,8 +28,10 @@ class UsersRepository
                 COALESCE(DATE_FORMAT(u.f_registro, '%d/%m/%Y %r'), '') f_registro,
                 COALESCE(DATE_FORMAT(u.f_ultima_conexion, '%d/%m/%Y %r'), '') f_ultima_conexion
             FROM usuarios u
+                LEFT JOIN usuarios_empresas_roles uer
+                    ON u.id = uer.usuario
                 LEFT JOIN usuarios_tipos ut
-                    ON u.tipo_usuario = ut.id
+                    ON uer.tipo_usuario = ut.id
         ";
 
         $params = [];
@@ -107,7 +109,6 @@ class UsersRepository
                 nombre,
                 usuario,
                 password_hash,
-                tipo_usuario,
                 activo,
                 f_registro
             ) VALUES (
@@ -115,7 +116,6 @@ class UsersRepository
                 :nombre,
                 :usuario,
                 :password_hash,
-                :tipo_usuario,
                 1,
                 NOW()
             )
@@ -125,8 +125,7 @@ class UsersRepository
             'uuid'                  => $data['uuid'],
             'nombre'                => $data['name'],
             'usuario'               => $data['username'],
-            'password_hash'         => $data['password_hash'],
-            'tipo_usuario'          => $data['user_role'],
+            'password_hash'         => $data['password_hash']
         ]);
 
         return (int) $this->db->lastInsertId();
