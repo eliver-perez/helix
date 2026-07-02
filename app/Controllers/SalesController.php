@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Database;
 use App\Repositories\SalesRepository;
+use App\Repositories\SalesStatusRepository;
 use App\Repositories\AppointmentsRepository;
 use App\Repositories\AppointmentsTypesRepository;
 use App\Repositories\BookingChannelsRepository;
@@ -25,12 +26,15 @@ use Throwable;
 
 class SalesController extends Controller
 {
+    private ?SalesRepository $repository = null;
+
     private function getService(): SalesService
     {
         $database = new Database();
         $conn = $database->getConnection();
 
         $salesRepository = new SalesRepository($conn);
+        $salesStatusRepository = new SalesStatusRepository($conn);
         $appointmentsRepository = new AppointmentsRepository($conn);
         $appointmentsTypeRepository = new AppointmentsTypesRepository($conn);
         $bookingChannelsRepository = new BookingChannelsRepository($conn);
@@ -40,15 +44,15 @@ class SalesController extends Controller
         $proceduresRepository = new ProceduresRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
 
-        return new SalesService($salesRepository, $appointmentsRepository, $appointmentsTypeRepository, $bookingChannelsRepository, $appointmentsStatusRepository, $patientsRepository, $staffRepository, $proceduresRepository, $settingsRepository);
+        return new SalesService($salesRepository, $salesStatusRepository, $appointmentsRepository, $appointmentsTypeRepository, $bookingChannelsRepository, $appointmentsStatusRepository, $patientsRepository, $staffRepository, $proceduresRepository, $settingsRepository);
     }
 
-    private function getRepository(): AppointmentsRepository {
+    private function getRepository(): SalesRepository {
         if ($this->repository === null) {
             $database = new Database();
             $conn = $database->getConnection();
 
-            $this->repository = new AppointmentsRepository($conn);
+            $this->repository = new SalesRepository($conn);
         }
 
         return $this->repository;
@@ -56,26 +60,38 @@ class SalesController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
-            $repository = $this->getRepository();
+            $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
+            
+            $limit = (int)$this->request->query('limit', 10);
+            $offset = (int)$this->request->query('offset', 0);
 
-            $data = $repository->getAll($search !== '' ? $search : null);
+            $status = trim((string)$this->request->query('status', ''));
+
+            $limit = max(1, min($limit, 50));
+            $offset = max(0, $offset);
+
+            $data = $service->getAll($search !== '' ? $search : null,
+                $limit,
+                $offset,
+                $status
+            );
 
             return $response->json([
-                    'status' => 'OK',
+                    'success' => true,
                     'data' => [
                         'sales' => $data
                     ]
                 ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 500);
         }

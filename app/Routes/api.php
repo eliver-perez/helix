@@ -11,6 +11,7 @@ use App\Controllers\StaffController;
 use App\Controllers\UsersController;
 use App\Controllers\BillingController;
 use App\Controllers\PatientsController;
+use App\Controllers\ClientsController;
 use App\Controllers\AppointmentsController;
 use App\Controllers\GenderController;
 use App\Controllers\ConsentTemplatesController;
@@ -25,6 +26,10 @@ use App\Controllers\LocationController;
 use App\Controllers\ConsultationsController;
 use App\Controllers\ConsultationsCatalogController;
 use App\Controllers\DiagnosticsController;
+use App\Controllers\SalesController;
+use App\Controllers\CashRegisterController;
+use App\Controllers\CashReconciliationController;
+use App\Controllers\POSController;
 use App\Core\Response;
 
 $router->post('/api/auth/login', [AuthController::class, 'login']);
@@ -63,6 +68,11 @@ $router->get('/api/billing-regimenes', [BillingController::class, 'regimenes']);
  */
 $router->get('/api/patients', [PatientsController::class, 'index']);
 $router->post('/api/patients', [PatientsController::class, 'store']);
+
+/**
+ * PATIENTS ROUTES
+ */
+$router->get('/api/clients', [ClientsController::class, 'index']);
 
 /**
  * GENDER ROUTES
@@ -170,3 +180,27 @@ $router->get('/api/catalog/podiatry/diagnostics', [DiagnosticsController::class,
 $router->get('/api/catalog/podiatry/diagnostic-types', [DiagnosticsController::class, 'diagnostic_types']);
 
 $router->get('/api/catalog/podiatry/podiatric-sores', [ConsultationsCatalogController::class, 'podiatric_sores']);
+
+/**
+ * POINT OF SALE ROUTES
+ */
+$router->get('/api/pos/cart', [POSController::class, 'get_cart']);
+$router->post('/api/pos/cart', [POSController::class, 'update']);
+$router->delete('/api/pos/cart', [POSController::class, 'delete']);
+$router->post('/api/pos/checkout', [POSController::class, 'checkout']);
+$router->post('/api/pos/empty-cart', [POSController::class, 'empty_cart']);
+
+/**
+ * SALES ROUTES
+ */
+$router->get('/api/sales', [SalesController::class, 'index']);
+
+/**
+ * CASH REGISTER ROUTES
+ */
+$router->get('/api/cash-register', [CashRegisterController::class, 'index']);
+
+/**
+ * CASH RECONCILIATION ROUTES
+ */
+$router->post('/api/cash-reconciliation', [CashReconciliationController::class, 'store']);

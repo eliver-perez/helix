@@ -214,7 +214,7 @@
             <?php } ?>
             <?php if($session->verifyUserRights(['superadmin'])) { ?>
                <li class="relative">
-                  <a href="<?= base_url('productos'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
+                  <a href="<?= base_url('products'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
                         <i class="uil uil-cube"></i>
                      </span>
@@ -314,10 +314,29 @@
 
             <div class="flex items-center ms-auto py-[15px] sm:gap-x-[25px] max-sm:gap-x-[15px] gap-y-[15px] relative">
 
-               <button type="button" class="flex xl:hidden items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]" id="author-dropdown">
+               <button type="button" class="flex xl:hidden items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
                   <i class="uil uil-ellipsis-v text-[18px]"></i>
                </button>
                <ul id="right-ellipsis-trigger" class="xl:flex hidden items-center justify-end flex-auto mb-0 list-none ps-0 sm:gap-x-[25px] max-sm:gap-x-[15px] gap-y-[15px] max-xl:absolute max-xl:z-[1000] max-xl:m-0 max-xl:rounded-lg max-xl:border-none max-xl:bg-white max-xl:bg-clip-padding max-xl:text-left max-xl:shadow-lg max-xl:dark:bg-neutral-700 max-xl:[&.active]:flex max-xl:end-0 max-xl:px-[20px] max-sm:px-[15px] max-xl:py-[10px] max-xl:top-[70px]">
+                  
+                  <li>
+
+                     <div class="relative" data-te-dropdown-ref>
+                        <button type="button" id="btn-header-menu-cart" onclick="javascript:window.open('<?= base_url('pos/') ?>', '_self')" class="flex items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
+                           <i class="uil uil-shopping-cart-alt"></i>
+                           <?php
+                              $cart_sales = count($_SESSION['cart']['sales'] ?? []);
+                              $cart_products = count($_SESSION['cart']['products'] ?? []);
+                              if(($cart_sales + $cart_products) > 0) { ?>
+                                 <span class="text-[11px] leading-[12px] absolute top-2 start-[15px] transform -translate-y-1/2 px-[4.50px] py-[1px] bg-danger border-2 border-white dark:border-gray-800 rounded-[15px] inline-flex items-center justify-center text-white dark:text-dark"><?= $cart_sales + $cart_products; ?></span>
+                           <?php
+                              }
+                           ?>
+                        </button>
+                     </div>
+
+                  </li>
+
                   <li>
 
                      <div class="relative" data-te-dropdown-ref>
@@ -339,7 +358,6 @@
                                  </figcaption>
                               </figure>
                               <ul class="m-0 pb-[10px] overflow-x-hidden overflow-y-auto scrollbar bg-transparent max-h-[230px]">
-
                                  <li class="w-full">
                                     <div class="p-0 dark:hover:text-white hover:bg-primary/10 dark:hover:bg-box-dark-up rounded-4">
                                        <button class="inline-flex items-center text-light dark:text-subtitle-dark hover:text-primary hover:ps-6 w-full px-2.5 py-3 text-sm transition-[0.3s] gap-[10px]">

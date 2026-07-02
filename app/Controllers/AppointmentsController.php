@@ -24,6 +24,8 @@ use Throwable;
 
 class AppointmentsController extends Controller
 {
+    private ?AppointmentsRepository $repository = null;
+
     private function getService(): AppointmentsService
     {
         $database = new Database();

@@ -3,7 +3,8 @@
     "description": "Software ERP para clinicas",
     "type": "project",
     "require": {
-        "tecnickcom/tcpdf": "^6.11"
+        "tecnickcom/tcpdf": "^6.11",
+        "chillerlan/php-qrcode": "^6.0"
     },
     "autoload": {
         "psr-4": {

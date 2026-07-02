@@ -106,3 +106,38 @@ function callUrlTimer(seconds, span, url) {
         }
     }, 1000);
 }
+
+function getCaretPosition(element) {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return 0;
+
+    const range = selection.getRangeAt(0);
+    const preRange = range.cloneRange();
+
+    preRange.selectNodeContents(element);
+    preRange.setEnd(range.endContainer, range.endOffset);
+
+    return preRange.toString().length;
+}
+
+function setCaretPosition(element, position) {
+    const range = document.createRange();
+    const selection = window.getSelection();
+
+    if (!element.firstChild) return;
+
+    range.setStart(element.firstChild, Math.min(position, element.firstChild.length));
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
+
+function setHeaderCartIconEmpty() {
+	  $('#btn-header-menu-cart').html(`<i class="uil uil-shopping-cart-alt"></i>`);
+}
+
+function setHeaderCartIcon(qty = 1) {
+	  $('#btn-header-menu-cart').html(`<i class="uil uil-shopping-cart-alt"></i>
+                                    <span class="text-[11px] leading-[12px] absolute top-2 start-[15px] transform -translate-y-1/2 px-[4.50px] py-[1px] bg-danger border-2 border-white dark:border-gray-800 rounded-[15px] inline-flex items-center justify-center text-white dark:text-dark">${qty}</span>`);
+}

@@ -4979,6 +4979,102 @@ body {
   height: fit-content;
 }
 
+.minh-30 {
+  min-height: 30vh !important;
+}
+
+.maxh-30 {
+  max-height: 30vh !important;
+}
+
+.minh-35 {
+  min-height: 35vh !important;
+}
+
+.maxh-35 {
+  max-height: 35vh !important;
+}
+
+.minh-40 {
+  min-height: 40vh !important;
+}
+
+.maxh-40 {
+  max-height: 40vh !important;
+}
+
+.minh-45 {
+  min-height: 45vh !important;
+}
+
+.maxh-45 {
+  max-height: 45vh !important;
+}
+
+.minh-50 {
+  min-height: 50vh !important;
+}
+
+.maxh-50 {
+  max-height: 50vh !important;
+}
+
+.minh-55 {
+  min-height: 55vh !important;
+}
+
+.maxh-55 {
+  max-height: 55vh !important;
+}
+
+.minh-60 {
+  min-height: 60vh !important;
+}
+
+.maxh-60 {
+  max-height: 60vh !important;
+}
+
+.minh-65 {
+  min-height: 65vh !important;
+}
+
+.maxh-65 {
+  max-height: 65vh !important;
+}
+
+.minh-70 {
+  min-height: 70vh !important;
+}
+
+.maxh-70 {
+  max-height: 70vh !important;
+}
+
+.minh-75 {
+  min-height: 75vh !important;
+}
+
+.maxh-75 {
+  max-height: 75vh !important;
+}
+
+.h-70 {
+  height: 70vh;
+}
+
+.h-75 {
+  height: 75vh;
+}
+
+.h-80 {
+  height: 80vh;
+}
+
+.h-90 {
+  height: 90vh;
+}
+
 .h-full {
   height: 100%;
 }
@@ -16238,6 +16334,52 @@ body {
 
   .min-\[576px\]\:max-w-\[620px\] {
     max-width: 620px;
+  }
+}
+
+@media (min-width: 980px) {
+  .min-\[980px\]\:mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .min-\[980px\]\:mt-7 {
+    margin-top: 1.75rem;
+  }
+
+  .min-\[980px\]\:min-h-\[calc\(100\%-3\.5rem\)\] {
+    min-height: calc(100% - 3.5rem);
+  }
+
+  .min-\[980px\]\:max-w-\[920px\] {
+    max-width: 920px;
+  }
+
+  .min-\[980px\]\:max-w-\[620px\] {
+    max-width: 620px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .min-\[1280px\]\:mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .min-\[1280px\]\:mt-7 {
+    margin-top: 1.75rem;
+  }
+
+  .min-\[1280px\]\:min-h-\[calc\(100\%-3\.5rem\)\] {
+    min-height: calc(100% - 3.5rem);
+  }
+
+  .min-\[1280px\]\:max-w-\[1100px\] {
+    max-width: 1100px;
+  }
+
+  .min-\[1280px\]\:max-w-\[900px\] {
+    max-width: 900px;
   }
 }
 

@@ -1108,7 +1108,6 @@ class ConsultationsService extends Service
             $procedures = $validate_data['procedures'];
             $next_appointment = $validate_data['next_appointment'];
 
-
             $processStatus = $this->normalizeRequiredInt(
                 $this->appointmentsStatusRepository->getIdByCode('en_proceso') ?? null,
                 'Ocurrio un error al intentar obtener información.'

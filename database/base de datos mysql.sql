@@ -87,6 +87,42 @@ CREATE TABLE colonias (
     CONSTRAINT FK_colonias_municipio FOREIGN KEY(municipio) REFERENCES municipios(id)
 );
 
+CREATE TABLE empresas (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         VARCHAR(120) NOT NULL,
+    calle                           VARCHAR(120) DEFAULT NULL,
+    num_ext                         VARCHAR(12) DEFAULT NULL,
+    num_int                         VARCHAR(12) DEFAULT NULL,
+    colonia                         INT DEFAULT NULL,
+    cp                              VARCHAR(5) DEFAULT NULL,
+    telefono                        VARCHAR(40) DEFAULT NULL,
+    movil                           VARCHAR(40) DEFAULT NULL,
+    email                           VARCHAR(255) DEFAULT NULL,
+    encargado                       VARCHAR(255) DEFAULT NULL,
+    CONSTRAINT FK_empresas_colonia FOREIGN KEY(colonia) REFERENCES colonias(id)
+);
+
+INSERT INTO empresas(uuid, empresa, domicilio, esta_empresa) VALUES(X'30313866386333612d386630622d3762', 'Clinica 1', 'Domicilio Conocido 1');
+
+CREATE TABLE sucursales (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
+    sucursal                        VARCHAR(120) NOT NULL,
+    calle                           VARCHAR(120) DEFAULT NULL,
+    num_ext                         VARCHAR(12) DEFAULT NULL,
+    num_int                         VARCHAR(12) DEFAULT NULL,
+    colonia                         INT DEFAULT NULL,
+    cp                              VARCHAR(5) DEFAULT NULL,
+    telefono                        VARCHAR(40) DEFAULT NULL,
+    movil                           VARCHAR(40) DEFAULT NULL,
+    email                           VARCHAR(255) DEFAULT NULL,
+    encargado                       VARCHAR(255) DEFAULT NULL,
+    CONSTRAINT FK_sucursales_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
+    CONSTRAINT FK_sucursales_colonia FOREIGN KEY(colonia) REFERENCES colonias(id)
+);
+
 CREATE TABLE unidades (
     id                              VARCHAR(8) PRIMARY KEY,
     codigo                          VARCHAR(20) NOT NULL UNIQUE,
@@ -291,17 +327,6 @@ CREATE TABLE personal_sueldos (
     CONSTRAINT FK_personalsueldos_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_personalsueldos_actualizo FOREIGN KEY(actualizo) REFERENCES usuarios(id)
 );
-
-CREATE TABLE empresas (
-    id                              INT AUTO_INCREMENT PRIMARY KEY,
-    uuid                            BINARY(16) NOT NULL UNIQUE,
-    empresa                         VARCHAR(120) NOT NULL,
-    domicilio                       VARCHAR(255) DEFAULT NULL,
-    esta_empresa                    SMALLINT NOT NULL DEFAULT 0
-);
-
-INSERT INTO empresas(uuid, empresa, domicilio, esta_empresa) VALUES(X'30313866386333612d386630622d3762', 'Clinica 1', 'Domicilio Conocido 1', 1);
-INSERT INTO empresas(uuid, empresa, domicilio, esta_empresa) VALUES(X'40313866386333612d386630622d3762', 'Clinica 2', 'Domicilio Conocido 2', 0);
 
 CREATE TABLE usuarios_empresas_roles (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -655,12 +680,12 @@ CREATE TABLE clientes_pacientes (
     cliente                         INT NOT NULL,
     paciente                        INT NOT NULL,
     parentesco                      SMALLINT NOT NULL,
-    principal                       SMALLINT NOT NULL DEFAULT 0,
+    principal                       TINYINT DEFAULT NULL,
     registro                        INT NOT NULL,
     activo                          SMALLINT NOT NULL DEFAULT 1,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
-    CONSTRAINT UK_clientespaciente_paciente UNIQUE(cliente, paciente),
+    CONSTRAINT UK_clientespaciente_paciente UNIQUE(paciente, principal),
     CONSTRAINT FK_clientespacientes_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
     CONSTRAINT FK_clientespacientes_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_clientespacientes_parentesco FOREIGN KEY(parentesco) REFERENCES parentescos(id),
@@ -2230,8 +2255,8 @@ CREATE TABLE ventas_estatus (
 );
 
 INSERT INTO ventas_estatus(codigo, estatus) VALUES('pendiente', 'Pendiente'),
-                                                ('pagado', 'Pagado'),
-                                                ('cancelado', 'Cancelado');
+                                                    ('pagado', 'Pagado'),
+                                                    ('cancelado', 'Cancelado');
 
 CREATE TABLE ventas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -2240,7 +2265,8 @@ CREATE TABLE ventas (
     consecutivo                     SMALLINT NOT NULL,
     consulta                        INT DEFAULT NULL,
     cita                            INT DEFAULT NULL,
-    paciente                        INT NOT NULL,
+    cliente                         INT NOT NULL,
+    paciente                        INT DEFAULT NULL,
     subtotal                        NUMERIC(18, 2) NOT NULL DEFAULT 0,
     impuestos                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
     total                           NUMERIC(18, 2) NOT NULL DEFAULT 0,
@@ -2255,6 +2281,7 @@ CREATE TABLE ventas (
     f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT FK_ventas_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_ventas_cita FOREIGN KEY(cita) REFERENCES citas(id),
+    CONSTRAINT FK_ventas_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
     CONSTRAINT FK_ventas_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_ventas_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
     CONSTRAINT FK_ventas_estatus FOREIGN KEY(estatus) REFERENCES ventas_estatus(id)
@@ -2288,6 +2315,7 @@ CREATE TABLE ventas_detalles (
     impuestos                       NUMERIC(18,2) NOT NULL DEFAULT 0,
     total                           NUMERIC(18,2) NOT NULL DEFAULT 0,
     descuento                       NUMERIC(18,2) NOT NULL DEFAULT 0,
+    pagado                          NUMERIC(18,2) NOT NULL DEFAULT 0,
     adeudo                          NUMERIC(18,2) NOT NULL DEFAULT 0,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
@@ -2339,14 +2367,17 @@ CREATE TABLE impresoras (
 
 CREATE TABLE cajas (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
-    caja                            VARCHAR(30) NOT NULL,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
     codigo                          VARCHAR(30) NOT NULL UNIQUE,
+    caja                            VARCHAR(30) NOT NULL,
     ubicacion                       VARCHAR(60) DEFAULT NULL,
     oculta                          SMALLINT NOT NULL DEFAULT 0,
     activa                          SMALLINT NOT NULL DEFAULT 1,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL                        
+    f_actualizacion                 DATETIME DEFAULT NULL,
 );
+
+INSERT INTO cajas(uuid, codigo, caja, ubicacion, f_registro) VALUES(X'382B5216EF014D39A07D1E96D19CC5B6', 'principal', 'Caja Principal', '', NOW());
 
 CREATE TABLE cajas_impresoras (
     caja                            SMALLINT NOT NULL,
@@ -2376,6 +2407,8 @@ CREATE TABLE cortes (
     cerrada_por                     INT DEFAULT NULL,
     f_cierre                        DATETIME DEFAULT NULL,
     monto_cierre                    NUMERIC(18, 2) DEFAULT NULL,
+    efectivo                        NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    otros_medios                    NUMERIC(18, 2) NOT NULL DEFAULT 0,
     efectivo_esperado               NUMERIC(18, 2) DEFAULT NULL,
     retiros                         NUMERIC(18, 2) NOT NULL DEFAULT 0,
     depositos                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
@@ -2383,7 +2416,7 @@ CREATE TABLE cortes (
     estatus                         SMALLINT NOT NULL,
     observaciones                   VARCHAR(1024) DEFAULT NULL,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT FK_cortes_caja FOREIGN KEY(caja) REFERENCES cajas(id),
     CONSTRAINT FK_cortes_abiertapor FOREIGN KEY(abierta_por) REFERENCES usuarios(id),
     CONSTRAINT FK_cortes_cerradapor FOREIGN KEY(cerrada_por) REFERENCES usuarios(id),
@@ -2425,17 +2458,24 @@ CREATE TABLE cortes_retiros (
 CREATE TABLE pagos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    folio                           VARCHAR(10) NOT NULL UNIQUE,
+    folio                           VARCHAR(15) NOT NULL UNIQUE,
     consecutivo                     SMALLINT NOT NULL DEFAULT 0,
-    f_pago                          DATETIME NOT NULL,
     cliente                         INT DEFAULT NULL,
-    registro                        INT NOT NULL,
     corte                           INT NOT NULL,
     metodo_pago                     SMALLINT NOT NULL,
     referencia                      VARCHAR(25) DEFAULT NULL,
     observaciones                   VARCHAR(500) DEFAULT NULL,
+    adeudo_anterior                 NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    monto_pago                      NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    adeudo                          NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    estatus                         SMALLINT NOT NULL DEFAULT 1,
+    registro                        INT NOT NULL,
+    cancelado_por                   INT DEFAULT NULL,
+    f_cancelacion                   DATETIME DEFAULT NULL,
+    motivo_cancelacion              VARCHAR(500) DEFAULT NULL,
+    f_pago                          DATETIME NOT NULL,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT FK_pagos_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
     CONSTRAINT FK_pagos_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
     CONSTRAINT FK_pagos_corte FOREIGN KEY(corte) REFERENCES cortes(id),
@@ -2450,11 +2490,25 @@ CREATE TABLE pagos_ventas (
     adeudo_anterior                 NUMERIC(18, 2) NOT NULL,
     monto_pago                      NUMERIC(18, 2) NOT NULL,
     adeudo_actual                   NUMERIC(18, 2) NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    CONSTRAINT UK_pagosventas UNIQUE(pago, venta),
     CONSTRAINT FK_pagosventas_pago FOREIGN KEY(pago) REFERENCES pagos(id),
     CONSTRAINT FK_pagosventas_venta FOREIGN KEY(venta) REFERENCES ventas(id)
 );
 
-
+CREATE TABLE pagos_ventas_detalles (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+    pago                            INT NOT NULL,
+    venta                           INT NOT NULL,
+    venta_detalle                   INT NOT NULL,
+    adeudo_anterior                 NUMERIC(18, 2) NOT NULL,
+    monto_pago                      NUMERIC(18, 2) NOT NULL,
+    adeudo_actual                   NUMERIC(18, 2) NOT NULL,
+    CONSTRAINT FK_pagosventasdetalles_pago FOREIGN KEY(pago) REFERENCES pagos(id),
+    CONSTRAINT FK_pagosventasdetalles_venta FOREIGN KEY(venta) REFERENCES ventas(id),
+    CONSTRAINT FK_pagosventasdetalles_ventadetalle FOREIGN KEY(venta_detalle) REFERENCES ventas_detalles(id)
+);
 
 
 

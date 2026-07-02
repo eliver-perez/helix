@@ -1,0 +1,149 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Core\Controller;
+use App\Core\Auth;
+use App\Core\Request;
+use App\Core\Response;
+use App\Core\Database;
+use App\Repositories\CashReconciliationRepository;
+use App\Repositories\CashReconciliationStatusRepository;
+use App\Repositories\CashRegisterRepository;
+use App\Repositories\SettingsRepository;
+use App\Services\CashReconciliationService;
+use InvalidArgumentException;
+use RuntimeException;
+use Throwable;
+
+class CashReconciliationController extends Controller
+{
+    private ?CashReconciliationRepository $repository = null;
+
+    private function getService(): CashReconciliationService
+    {
+        $database = new Database();
+        $conn = $database->getConnection();
+
+        $cashReconciliationRepository = new CashReconciliationRepository($conn);
+        $cashReconciliationStatusRepository = new CashReconciliationStatusRepository($conn);
+        $cashRegisterRepository = new CashRegisterRepository($conn);
+        $settingsRepository = new SettingsRepository($conn);
+
+        return new CashReconciliationService($cashReconciliationRepository, $cashReconciliationStatusRepository, $cashRegisterRepository, $settingsRepository);
+    }
+
+    private function getRepository(): CashReconciliationRepository {
+        if ($this->repository === null) {
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            $this->repository = new CashReconciliationRepository($conn);
+        }
+
+        return $this->repository;
+    }
+
+    public function index(Request $request, Response $response) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+
+            $cash_reconciliations = $service->getAll();
+
+            return $response->json([
+                    'success' => true,
+                    'data' => [
+                        'cash_reconciliations' => $cash_reconciliations
+                    ]
+                ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function store(Request $request, Response $response) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+
+            $cash_reconciliation = $service->create([
+                'initialize_amount'         => $request->input('initialize_amount'),
+                'cash_register'             => $request->input('cash_register'),
+                'uid'                       => $currentUserId,
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Corte registrado correctamente.',
+                'data' => [
+                    'cash_reconciliation_id' => $cash_reconciliation
+                ]
+            ], 201);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function activeCashReconciliation() {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+
+            $data = $service->checkForActiveCashReconciliation($currentUserId);
+
+            return json_encode([
+                'success' => true,
+                'data' => [
+                    'id'                                    => $data['id'] ?? '',
+                    'opened_by_id'                          => $data['opened_by_id'] ?? '',
+                    'opened_by_name'                        => $data['opened_by_name'] ?? '',
+                    'opened_date'                           => $data['opened_date'] ?? ''
+                ]
+            ]);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return json_encode([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        } catch (Throwable $e) {
+            return json_encode([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+}
