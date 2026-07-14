@@ -78,13 +78,32 @@ class AuthController extends Controller
                 uer.id,
                 e.uuid empresa_id,
                 e.empresa,
-                e.domicilio,
+                TRIM(
+                    CONCAT(
+                        COALESCE(e.calle, ''), ' ',
+                        COALESCE(e.num_ext, ''), ' ',
+                        COALESCE(e.num_int, ''), ', ',
+                        COALESCE(ce.colonia, ''), ' ',
+                        COALESCE(e.cp, ''), ', ',
+                        COALESCE(me.municipio, ''), ', ',
+                        COALESCE(ee.estado, ''), ', ',
+                        COALESCE(pe.pais, '')
+                    )
+                ) domicilio,
                 ut.id tipo_usuario_id,
                 ut.codigo tipo_usuario_codigo,
                 ut.tipo tipo_usuario
                 FROM usuarios_empresas_roles uer
                     INNER JOIN empresas e
                         ON uer.empresa = e.id
+                    LEFT JOIN colonias ce
+                        ON e.colonia = ce.id
+                    LEFT JOIN municipios me
+                        ON ce.municipio = me.id
+                    LEFT JOIN estados ee
+                        ON me.estado = ee.id
+                    LEFT JOIN paises pe
+                        ON ee.pais = pe.id
                     INNER JOIN usuarios_tipos ut
                         ON uer.tipo_usuario = ut.id
                 WHERE uer.usuario = :usuario

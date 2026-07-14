@@ -91,7 +91,7 @@ class ClientsRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getClientId(string $uuid): ?int {
+    public function getClientId($uuid): ?int {
         $stmt = $this->db->prepare("
             SELECT id
             FROM clientes

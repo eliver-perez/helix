@@ -21,6 +21,8 @@ class UsersRepository
         $sql = "
             SELECT
                 u.id,
+                u.uuid,
+                u.email,
                 u.usuario,
                 u.nombre,
                 ut.tipo,
@@ -49,8 +51,20 @@ class UsersRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function findById(int $id): ?array
-    {
+    public function getUserIdByUuid($uuid): ?int {
+        $stmt = $this->db->prepare("
+            SELECT id
+            FROM usuarios
+            WHERE uuid = :uuid
+            LIMIT 1");
+        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        return $id !== false ? (int) $id : null;
+    }
+
+    public function findById(int $id): ?array {
         $stmt = $this->db->prepare("
             SELECT
                 p.id,

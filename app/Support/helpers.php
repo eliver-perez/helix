@@ -70,8 +70,12 @@ function asset(string $path): string
     return $base . '/assets/' . ltrim($path, '/');
 }
 
-function is_uuid($value) {
-    return preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value);
+function is_uuid(mixed $value): bool {
+    return is_string($value)
+        && preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $value
+        ) === 1;
 }
 
 function moduleEnabled(array $modules, string $module) : ?stdClass {

@@ -20,6 +20,7 @@ use App\Controllers\AppointmentsStatusController;
 use App\Controllers\BookingChannelsController;
 use App\Controllers\ProceduresController;
 use App\Controllers\UserRoleController;
+use App\Controllers\UsersTypesController;
 use App\Controllers\RoleController;
 use App\Controllers\SpecialtyController;
 use App\Controllers\LocationController;
@@ -27,9 +28,13 @@ use App\Controllers\ConsultationsController;
 use App\Controllers\ConsultationsCatalogController;
 use App\Controllers\DiagnosticsController;
 use App\Controllers\SalesController;
+use App\Controllers\SalesStatusController;
 use App\Controllers\CashRegisterController;
 use App\Controllers\CashReconciliationController;
+use App\Controllers\PaymentsController;
 use App\Controllers\POSController;
+use App\Controllers\UnitsMeasureController;
+use App\Controllers\ProductsController;
 use App\Core\Response;
 
 $router->post('/api/auth/login', [AuthController::class, 'login']);
@@ -47,6 +52,17 @@ $router->post('/api/staff', [StaffController::class, 'store']);
  * USERS ROUTES
  */
 $router->get('/api/users', [UsersController::class, 'index']);
+$router->get('/api/users/types', [UsersTypesController::class, 'index']);
+$router->get('/api/users/roles', [UserRoleController::class, 'roles']);
+$router->get('/api/users/types/{id}/roles', [UserRoleController::class, 'userTypeRoles']);
+$router->get('/api/users/{id}/roles', [UserRoleController::class, 'userRoles']);
+$router->post('/api/users/{id}/permissions', [UserRoleController::class, 'addUserPermission']);
+
+/**
+ * USER TYPES ROUTES
+ */
+
+$router->post('/api/user-types/{id}/permissions', [UserRoleController::class, 'addUserTypePermission']);
 
 /**
  * APPOINTMENTS ROUTES
@@ -194,6 +210,8 @@ $router->post('/api/pos/empty-cart', [POSController::class, 'empty_cart']);
  * SALES ROUTES
  */
 $router->get('/api/sales', [SalesController::class, 'index']);
+$router->get('/api/sales/status', [SalesStatusController::class, 'index']);
+$router->get('/api/sales/{id}', [SalesController::class, 'show']);
 
 /**
  * CASH REGISTER ROUTES
@@ -204,3 +222,25 @@ $router->get('/api/cash-register', [CashRegisterController::class, 'index']);
  * CASH RECONCILIATION ROUTES
  */
 $router->post('/api/cash-reconciliation', [CashReconciliationController::class, 'store']);
+$router->put('/api/cash-reconciliation', [CashReconciliationController::class, 'close']);
+$router->get('/api/cash-reconciliation', [CashReconciliationController::class, 'index']);
+$router->get('/api/cash-reconciliation/{id}', [CashReconciliationController::class, 'show']);
+$router->get('/api/cash-reconciliation/closing-data', [CashReconciliationController::class, 'cashReconciliationClosingData']);
+
+/**
+ * UNITS MEASURE ROUTES
+ */
+$router->get('/api/units-measure', [UnitsMeasureController::class, 'index']);
+
+/**
+ * PRODUCTS ROUTES
+ */
+$router->get('/api/products/categories', [ProductsController::class, 'categories']);
+$router->get('/api/products', [ProductsController::class, 'index']);
+$router->post('/api/products', [ProductsController::class, 'store']);
+
+/**
+ * PAYMENTS ROUTES
+ */
+$router->get('/api/payments', [PaymentsController::class, 'index']);
+$router->get('/api/payments/{id}', [PaymentsController::class, 'show']);

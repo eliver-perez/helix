@@ -15,7 +15,9 @@ use App\Repositories\SalesStatusRepository;
 use App\Repositories\PaymentsRepository;
 use App\Repositories\PaymentsMethodsRepository;
 use App\Repositories\ClientsRepository;
+use App\Repositories\PatientsRepository;
 use App\Repositories\CashReconciliationRepository;
+use App\Repositories\ProductsRepository;
 use App\Repositories\FoliosRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\POSService;
@@ -38,11 +40,23 @@ class POSController extends Controller
         $paymentsRepository = new PaymentsRepository($conn);
         $paymentsMethodsRepository = new PaymentsMethodsRepository($conn);
         $clientsRepository = new ClientsRepository($conn);
+        $patientsRepository = new PatientsRepository($conn);
         $cashReconciliationRepository = new CashReconciliationRepository($conn);
+        $productsRepository = new ProductsRepository($conn);
         $foliosRepository = new FoliosRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
 
-        return new POSService($posRepository, $salesRepository, $salesStatusRepository, $paymentsRepository, $paymentsMethodsRepository, $clientsRepository, $cashReconciliationRepository, $foliosRepository, $settingsRepository);
+        return new POSService($posRepository,
+                                $salesRepository,
+                                $salesStatusRepository,
+                                $paymentsRepository,
+                                $paymentsMethodsRepository,
+                                $clientsRepository,
+                                $patientsRepository,
+                                $cashReconciliationRepository,
+                                $productsRepository,
+                                $foliosRepository,
+                                $settingsRepository);
     }
 
     private function getRepository(): POSRepository {

@@ -2204,7 +2204,7 @@ function donutChart5(idName) {
 }
 
 // Index Page = Sales Report
-lineChart('.salesReport', '100%', 245);
+lineChart('.salesReport', '100%', 445);
 // Index Page = Sales Growth
 barChart('.salesGrowthToday', '100%', 311, [35, 55, 25, 60, 42, 80, 35], [10, 30, 8, 30, 22, 38, 45], ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"], '60%');
 // Index Page = Sales Growth

@@ -6,6 +6,50 @@
     require_once __DIR__.'/calendar_modal.php';
 ?>
 
+<style>
+    /* .fc-timegrid-event {
+      height: 45px;
+      max-height: 45px !important;
+    } */
+
+    .fc-timegrid-event {
+      min-height: 34px;
+   }
+
+    .fc .fc-timegrid-slot-label {
+      font-size: .9rem;
+   }
+
+    .fc-timegrid-event .fc-event-title {
+      white-space: normal;
+      overflow: hidden;
+      font-weight: 600;
+   }
+
+   .fc-timegrid-event .fc-event-main {
+      overflow: visible !important;
+   }
+
+   .fc-timegrid-event .fc-event-main-frame {
+      display: block !important;
+   }
+
+   .fc-timegrid-event .fc-event-time {
+      display: block;
+   }
+
+   .fc-timegrid-event .fc-event-title-container,
+   .fc-timegrid-event .fc-event-title {
+      display: block !important;
+      white-space: normal !important;
+      overflow: visible !important;
+   }
+
+   .fc .fc-timegrid-slot {
+      height: 42px;
+   }
+</style>
+
 <!-- Responsive Toggler -->
 <div class="flex items-center justify-center 4xl:hidden ssm:mb-[30px] mb-[15px]">
    <button id="chat-sidebar-selector" type="button" class=" text-danger text-sm font-semibold inline-flex justify-center items-center w-[40px] h-[40px] bg-white rounded-6 dark:bg-box-dark-up">

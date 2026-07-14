@@ -30,7 +30,7 @@
                                         <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                         <i class="uil uil-search text-[16px]"></i>
                                         </span>
-                                        <input type="text" id="field-busqueda-consultas" name="busqueda_consultas" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Busqueda" value="">
+                                        <input type="text" id="field-busqueda-productos" name="busqueda_productos" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Busqueda" value="">
                                     </div>
                                 </div>
                             </div>
@@ -38,23 +38,19 @@
 
                         <div class="col-span-12">
                             <div class="max-h-[455px] scrollbar overflow-y-auto">
-                                <table id="table-consultas" class="min-w-full text-sm font-light text-start whitespace-nowrap product-container">
+                                <table id="table-productos" class="min-w-full text-sm font-light text-start whitespace-nowrap product-container">
                                     <thead>
                                         <tr>
-                                            <th class="sticky top-0 capitalize bg-regularBG dark:bg-box-dark-up px-[25px] py-4 text-start text-light dark:text-title-dark text-[14px] font-medium border-none before:hidden rounded-s-[4px]">
-                                            Clave</th>
-                                            <th class="sticky top-0 capitalize bg-regularBG dark:bg-box-dark-up px-[25px] py-4 text-start text-light dark:text-title-dark text-[14px] font-medium border-none before:hidden rounded-s-[4px]">
-                                            Paciente</th>
-                                            <th class="sticky top-0 capitalize bg-regularBG dark:bg-box-dark-up px-4 py-4 text-light dark:text-title-dark text-[14px] font-medium border-none before:hidden">
-                                            Cliente</th>
-                                            <th class="sticky top-0 capitalize bg-regularBG dark:bg-box-dark-up px-4 py-4 text-light dark:text-title-dark text-[14px] font-medium border-none before:hidden">
-                                            Fecha</th>
-                                            <th class="sticky top-0 capitalize bg-regularBG dark:bg-box-dark-up px-4 py-4 text-light dark:text-title-dark text-[14px] font-medium border-none before:hidden">
-                                            Total</th>
-                                            <th class="sticky top-0 capitalize bg-regularBG dark:bg-box-dark-up px-4 py-4 text-light dark:text-title-dark text-[14px] font-medium border-none before:hidden">
-                                            Pagado</th>
-                                            <th class="sticky top-0 capitalize bg-regularBG dark:bg-box-dark-up px-4 py-4 text-light dark:text-title-dark text-[14px] font-medium border-none before:hidden">
-                                            Adeudo</th>
+                                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-start text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden rounded-s-[4px]">
+                                                CLAVE</th>
+                                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                                PRODUCTO</th>
+                                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                                CATEGORÍA</th>
+                                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                                UNIDAD</th>
+                                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                                PRECIO</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white dark:bg-box-dark">

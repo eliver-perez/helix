@@ -55,6 +55,7 @@ function SetCalendar() {
             titleFormat: { month: "short", weekday: "short" },
           }
         },
+		eventMinHeight: 50,
 		buttonText: {
 			today: 'Hoy',
 			month: 'Mes',
@@ -85,6 +86,8 @@ function SetCalendar() {
         eventSources: [ ],
         contentHeight: 800,
         initialView: "timeGridWeek",
+		slotMinTime: '08:00:00',
+    	slotMaxTime: '20:00:00',
 		locale: 'es',
         eventDidMount: function (view) {
           document.querySelectorAll(".fc-list-day").forEach(function (item) {});
@@ -98,7 +101,7 @@ function SetCalendar() {
           	modalElement = document.getElementById('e-info-modal');
 
 			modalElement.querySelector('.e-info-title').textContent =
-				event.title || '';
+				(event.extendedProps.patient + ' - ' + event.extendedProps.appointment_type) || '';
 
 			modalElement.querySelector('.e-info-date').textContent =
 				event.start

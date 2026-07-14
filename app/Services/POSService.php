@@ -11,7 +11,9 @@ use App\Repositories\SalesStatusRepository;
 use App\Repositories\PaymentsRepository;
 use App\Repositories\PaymentsMethodsRepository;
 use App\Repositories\ClientsRepository;
+use App\Repositories\PatientsRepository;
 use App\Repositories\CashReconciliationRepository;
+use App\Repositories\ProductsRepository;
 use App\Repositories\FoliosRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\SettingsService;
@@ -27,7 +29,9 @@ class POSService extends Service
         private PaymentsRepository $paymentsRepository,
         private PaymentsMethodsRepository $paymentsMethodsRepository,
         private ClientsRepository $clientsRepository,
+        private PatientsRepository $patientsRepository,
         private CashReconciliationRepository $cashReconciliationRepository,
+        private ProductsRepository $productsRepository,
         private FoliosRepository $foliosRepository,
         private SettingsRepository $settingsRepository
     ) {
@@ -44,7 +48,6 @@ class POSService extends Service
             $this->createEmptyCart();
         switch($action) {
             case 'add_sale':
-                // $this->clearCartSales();
                 if(!$this->saleExistsInCart($data->sale)) {
                     $sale_data = $this->addSaleToCart($data->sale);
                     if($_SESSION['cart']['client'] == null) {
@@ -113,6 +116,119 @@ class POSService extends Service
                     'client_name'                   => $_SESSION['cart']['client_name'],
                 ];
                 break;
+            case 'add_product':
+                $product_data = $this->productsRepository->getProductData([
+                    'uuid'                          => $this->uuidStringtoBinary($data->product)
+                ]);
+                if(!$this->productExistsInCart($data->product)) {
+                    $product = [
+                        'id'                            => $this->uuidBinaryToString($product_data['uuid']),
+                        'sale_id'                       => -1,
+                        'sale_uuid'                     => '',
+                        'code'                          => $product_data['clave'],
+                        'name'                          => $product_data['nombre'],
+                        'category'                      => $product_data['categoria'],
+                        'unit_measure'                  => $product_data['unidad'],
+                        'qty'                           => 1,
+                        'unit_price'                    => $product_data['precio_total'],
+                        'subtotal'                      => $product_data['precio_base'],
+                        'tax_rate'                      => $product_data['porc_impuestos'],
+                        'taxes'                         => $product_data['impuestos'],
+                        'total'                         => $product_data['precio_total'],
+                        'paid'                          => 0,
+                        'discount'                      => 0,
+                        'balance_due'                   => $product_data['precio_total'],
+                    ];
+                    array_push($_SESSION['cart']['products'], $product);
+                    $add = 1;
+                } else {
+                    $product = $this->addProductQuantity($data->product, $product_data, 1);
+                    $add = 0;
+                }
+                $this->calculateTotal();
+                return [
+                    'id'                        => $_SESSION['cart']['id'],
+                    'client'                    => $_SESSION['cart']['client'],
+                    'client_name'               => $_SESSION['cart']['client_name'],
+                    'patient'                   => $_SESSION['cart']['patient'],
+                    'patient_name'              => $_SESSION['cart']['patient_name'],
+                    'coupon'                    => $_SESSION['cart']['coupon'],
+                    'discount'                  => $_SESSION['cart']['discount'],
+                    'subtotal'                  => $_SESSION['cart']['subtotal'],
+                    'taxes'                     => $_SESSION['cart']['taxes'],
+                    'total'                     => $_SESSION['cart']['total'],
+                    'balance_due'               => $_SESSION['cart']['balance_due'],
+                    'product'                   => $product,
+                    'add'                       => $add
+                ];
+                break;
+            case 'change_product_qty':
+                $product_data = $this->productsRepository->getProductData([
+                    'uuid'                          => $this->uuidStringtoBinary($data->product)
+                ]);
+                if(!$this->productExistsInCart($data->product)) {
+                    $product = [
+                        'id'                            => $this->uuidBinaryToString($product_data['uuid']),
+                        'sale_id'                       => -1,
+                        'sale_uuid'                     => '',
+                        'code'                          => $product_data['clave'],
+                        'name'                          => $product_data['nombre'],
+                        'category'                      => $product_data['categoria'],
+                        'unit_measure'                  => $product_data['unidad'],
+                        'qty'                           => 1,
+                        'unit_price'                    => $product_data['precio_total'],
+                        'subtotal'                      => $product_data['precio_base'],
+                        'tax_rate'                      => $product_data['porc_impuestos'],
+                        'taxes'                         => $product_data['impuestos'],
+                        'total'                         => $product_data['precio_total'],
+                        'paid'                          => 0,
+                        'discount'                      => 0,
+                        'balance_due'                   => $product_data['precio_total'],
+                    ];
+                    array_push($_SESSION['cart']['products'], $product);
+                    $add = 1;
+                } else {
+                    $product = $this->updateProductQuantity($data->product, $product_data, $data->qty);
+                    $add = 0;
+                }
+                $this->calculateTotal();
+                return [
+                    'id'                        => $_SESSION['cart']['id'],
+                    'client'                    => $_SESSION['cart']['client'],
+                    'client_name'               => $_SESSION['cart']['client_name'],
+                    'patient'                   => $_SESSION['cart']['patient'],
+                    'patient_name'              => $_SESSION['cart']['patient_name'],
+                    'coupon'                    => $_SESSION['cart']['coupon'],
+                    'discount'                  => $_SESSION['cart']['discount'],
+                    'subtotal'                  => $_SESSION['cart']['subtotal'],
+                    'taxes'                     => $_SESSION['cart']['taxes'],
+                    'total'                     => $_SESSION['cart']['total'],
+                    'balance_due'               => $_SESSION['cart']['balance_due'],
+                    'product'                   => $product,
+                    'add'                       => $add
+                ];
+                break;
+            case 'remove_product':
+                if($this->productExistsInCart($data->product)) {
+                    $this->removeProductFromCart($data->product);
+                    return [
+                        'id'                        => $_SESSION['cart']['id'],
+                        'client'                    => $_SESSION['cart']['client'],
+                        'client_name'               => $_SESSION['cart']['client_name'],
+                        'patient'                   => $_SESSION['cart']['patient'],
+                        'patient_name'              => $_SESSION['cart']['patient_name'],
+                        'coupon'                    => $_SESSION['cart']['coupon'],
+                        'discount'                  => $_SESSION['cart']['discount'],
+                        'subtotal'                  => $_SESSION['cart']['subtotal'],
+                        'taxes'                     => $_SESSION['cart']['taxes'],
+                        'total'                     => $_SESSION['cart']['total'],
+                        'balance_due'               => $_SESSION['cart']['balance_due'],
+                        'product'                      => $data->product,
+                    ];
+                } else {
+                    throw new RuntimeException("El producto no se encuentra en el carrito.");
+                }
+                break;
         }
     }
 
@@ -177,6 +293,13 @@ class POSService extends Service
         $this->calculateTotal();
     }
 
+    function removeProductFromCart($id) {
+        $_SESSION['cart']['products'] = array_filter($_SESSION['cart']['products'], fn($item) => $item['id'] !== $id);
+
+        $_SESSION['cart']['products'] = array_values($_SESSION['cart']['products']);
+        $this->calculateTotal();
+    }
+
     public function calculateTotal() {
         if(isset($_SESSION['cart'])) {
             $sales_balance_due = 0;
@@ -191,6 +314,51 @@ class POSService extends Service
             $_SESSION['cart']['subtotal'] = $total;
             $_SESSION['cart']['total'] = $total;
             $_SESSION['cart']['balance_due'] = $total;
+        }
+    }
+
+    public function productExistsInCart($id) {
+        if(isset($_SESSION['cart']))
+            foreach($_SESSION['cart']['products'] as $cp) {
+                if($cp['id'] == $id)
+                    return true;
+            }
+        return false;
+    }
+
+    public function addProductQuantity($id, $data, $qty) {
+        for($i = 0; $i < count($_SESSION['cart']['products']); $i++) {
+            if($_SESSION['cart']['products'][$i]['id'] == $id) {
+                $_SESSION['cart']['products'][$i]['qty'] += $qty;
+                $_SESSION['cart']['products'][$i]['total'] = round($_SESSION['cart']['products'][$i]['unit_price'] *  $_SESSION['cart']['products'][$i]['qty'], 2);
+                if($_SESSION['cart']['products'][$i]['tax_rate'] > 0) {
+                    $_SESSION['cart']['products'][$i]['subtotal'] = round($_SESSION['cart']['products'][$i]['total'] / ($_SESSION['cart']['products'][$i]['tax_rate'] / 100 + 1), 2);
+                    $_SESSION['cart']['products'][$i]['taxes'] = $_SESSION['cart']['products'][$i]['total'] - $_SESSION['cart']['products'][$i]['subtotal'];
+                } else {
+                    $_SESSION['cart']['products'][$i]['subtotal'] = $_SESSION['cart']['products'][$i]['total'];
+                    $_SESSION['cart']['products'][$i]['taxes'] = 0;
+                }
+                $_SESSION['cart']['products'][$i]['balance_due'] = $_SESSION['cart']['products'][$i]['total'];
+                return $_SESSION['cart']['products'][$i];
+            }
+        }
+    }
+
+    public function updateProductQuantity($id, $data, $qty) {
+        for($i = 0; $i < count($_SESSION['cart']['products']); $i++) {
+            if($_SESSION['cart']['products'][$i]['id'] == $id) {
+                $_SESSION['cart']['products'][$i]['qty'] = $qty;
+                $_SESSION['cart']['products'][$i]['total'] = round($_SESSION['cart']['products'][$i]['unit_price'] *  $_SESSION['cart']['products'][$i]['qty'], 2);
+                if($_SESSION['cart']['products'][$i]['tax_rate'] > 0) {
+                    $_SESSION['cart']['products'][$i]['subtotal'] = round($_SESSION['cart']['products'][$i]['total'] / ($_SESSION['cart']['products'][$i]['tax_rate'] / 100 + 1), 2);
+                    $_SESSION['cart']['products'][$i]['taxes'] = $_SESSION['cart']['products'][$i]['total'] - $_SESSION['cart']['products'][$i]['subtotal'];
+                } else {
+                    $_SESSION['cart']['products'][$i]['subtotal'] = $_SESSION['cart']['products'][$i]['total'];
+                    $_SESSION['cart']['products'][$i]['taxes'] = 0;
+                }
+                $_SESSION['cart']['products'][$i]['balance_due'] = $_SESSION['cart']['products'][$i]['total'];
+                return $_SESSION['cart']['products'][$i];
+            }
         }
     }
 
@@ -233,9 +401,23 @@ class POSService extends Service
             $conn = $this->posRepository->getConnection();
             $conn->beginTransaction();
 
-            // throw new RuntimeException(var_dump($_SESSION));
-
             try {
+                $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen($data['uid']);
+                if($cashReconciliationUuid == null) {
+                    $_SESSION['cash_reconciliation'] = null;
+                    throw new RuntimeException("No existe un corte activo");
+                }
+                
+                if($this->uuidBinarytoString($cashReconciliationUuid) != $_SESSION['cash_reconciliation']['id']) {
+                    $cashReconciliationData = $this->cashReconciliationRepository->getCashReconciliationData([
+                        'uuid'                      => $cashReconciliationUuid
+                    ]);
+                    $_SESSION['cash_reconciliation']['id'] = $this->uuidBinarytoString($cashReconciliationData['uuid']);
+                    $_SESSION['cash_reconciliation']['opened_by'] = $this->uuidBinarytoString($cashReconciliationData['opened_by_id']);
+                    $_SESSION['cash_reconciliation']['opened_by_name'] = $cashReconciliationData['opened_by_name'];
+                    $_SESSION['cash_reconciliation']['opened_date'] = $cashReconciliationData['opened_date'];
+                }
+
                 $year = date('Y');
                 $c_aux = $this->foliosRepository->getConsecutive('pago', $year);
                 $payment_consecutive = $c_aux + 1;
@@ -265,6 +447,117 @@ class POSService extends Service
                     'uid'                                           => $data['uid'],
                 ]);
                 $remaining_payment = $payment_amount;
+                if(count($_SESSION['cart']['products']) > 0) {
+                    $year = date('Y');
+                    $c_aux = $this->foliosRepository->getConsecutive('venta', $year);
+                    $sale_consecutive = $c_aux + 1;
+                    $folio = 'V-' . str_pad((string) $sale_consecutive, 7, '0', STR_PAD_LEFT) . '/' . substr($year, -2);
+
+                    $product_sale_subtotal = 0;
+                    $product_sale_taxes = 0;
+                    $product_sale_total = 0;
+                    $product_sale_discount = 0;
+                    $product_sale_paid = 0;
+                    $product_sale_balance_due = 0;
+                    $sale_pending_status = $this->salesStatusRepository->getIdByCode('pendiente');
+                    $client_id = isset($_SESSION['cart']['client']) ? $this->clientsRepository->getClientId($this->uuidStringtoBinary($_SESSION['cart']['client'])) : null;
+                    $patient_id = isset($_SESSION['cart']['patient']) ? $this->patientsRepository->getPatientId($this->uuidStringtoBinary($_SESSION['cart']['patient'])) : null;
+                    foreach($_SESSION['cart']['products'] as $ps) {
+                        $product_sale_subtotal = $ps['subtotal'];
+                        $product_sale_taxes = $ps['taxes'];
+                        $product_sale_total = $ps['total'];
+                        $product_sale_balance_due = $ps['total'];
+                    }
+                    $product_sale_uuid = $this->generateUuidBinary();
+
+                    $product_sale_id = $this->salesRepository->registerSale([
+                        'uuid'                                      => $product_sale_uuid,
+                        'folio'                                     => $folio,
+                        'consecutive'                               => $sale_consecutive,
+                        'client'                                    => $client_id,
+                        'patient'                                   => $patient_id,
+                        'subtotal'                                  => $product_sale_subtotal,
+                        'taxes'                                     => $product_sale_taxes,
+                        'total'                                     => $product_sale_total,
+                        'discount'                                  => $product_sale_discount,
+                        'paid'                                      => $product_sale_paid,
+                        'balance_due'                               => $product_sale_balance_due,
+                        'status'                                    => $sale_pending_status,
+                        'observations'                              => $data['observations'] ?? '',
+                        'uid'                                       => $data['uid'],
+                    ]);
+
+                    foreach($_SESSION['cart']['products'] as $key => $ps) {
+                        $product_sale_details_uuid = $this->generateUuidBinary();
+                        $product_id = $this->productsRepository->getProductId($this->uuidStringtoBinary($ps['id']));
+                        $_SESSION['cart']['products'][$key]['sale_uuid'] = $product_sale_details_uuid;
+                        $_SESSION['cart']['products'][$key]['sale_id'] = $this->salesRepository->registerSaleProductDetails([
+                            'uuid'                                      => $product_sale_details_uuid,
+                            'sale'                                      => $product_sale_id,
+                            'product'                                   => $product_id,
+                            'description'                               => $ps['name'],
+                            'quantity'                                  => $ps['qty'],
+                            'unit_price'                                => $ps['unit_price'],
+                            'subtotal'                                  => $ps['subtotal'],
+                            'taxes'                                     => $ps['taxes'],
+                            'total'                                     => $ps['total'],
+                            'discount'                                  => $ps['discount'],
+                            'paid'                                      => $ps['paid'],
+                            'balance_due'                               => $ps['balance_due'],
+                            'observations'                              => $data['observations'] ?? '',
+                            'uid'                                       => $data['uid'],
+                        ]);
+                    }
+
+                    $payment_sale_uuid = $this->generateUuidBinary();
+                    if($remaining_payment >= $product_sale_balance_due)
+                        $product_payment_amount = $product_sale_balance_due;
+                    else
+                        $product_payment_amount = $remaining_payment;
+                    $remaining_payment -= $product_payment_amount;
+                    $remaining_sale_balance = $product_sale_balance_due - $product_payment_amount;
+                    $sale_payment_id = $this->paymentsRepository->registerSalePayment([
+                        'uuid'                                      => $payment_sale_uuid,
+                        'payment'                                   => $payment_id,
+                        'sale'                                      => $product_sale_uuid,
+                        'balance_due_before'                        => $product_sale_balance_due,
+                        'payment_amount'                            => $product_payment_amount,
+                        'balance_due'                               => $remaining_sale_balance,
+                    ]);
+                    $this->salesRepository->updateSaleBalance([
+                        'sale'                                      => $product_sale_uuid,
+                        'payment_amount'                            => $product_payment_amount,
+                        'balance_due'                               => $remaining_sale_balance,
+                        'status'                                    => $remaining_sale_balance > 0 ? $pending_sale_status_id : $paid_sale_status_id,
+                    ]);
+
+                    $remaining_sale_payment = $product_payment_amount;
+                    foreach($_SESSION['cart']['products'] as $ps) {
+                        if($ps['balance_due'] > 0) {
+                            if($remaining_sale_payment >= $ps['balance_due'])
+                                $sale_detail_payment_amount = $ps['balance_due'];
+                            else
+                                $sale_detail_payment_amount = $remaining_sale_payment;
+                            $remaining_sale_payment -= $sale_detail_payment_amount;
+                            $remaining_sale_detail_balance = $ps['balance_due'] - $sale_detail_payment_amount;
+                            $payment_sale_detail_uuid = $this->generateUuidBinary();
+                            $this->paymentsRepository->registerSaleDetailPayment([
+                                'uuid'                                      => $payment_sale_detail_uuid,
+                                'payment'                                   => $payment_id,
+                                'sale_detail'                               => $ps['sale_uuid'],
+                                'balance_due_before'                        => $ps['balance_due'],
+                                'payment_amount'                            => $sale_detail_payment_amount,
+                                'balance_due'                               => $remaining_sale_detail_balance,
+                            ]);
+                            $this->salesRepository->updateSaleDetailBalance([
+                                'sale'                                      => $ps['sale_uuid'],
+                                'payment_amount'                            => $sale_detail_payment_amount,
+                                'balance_due'                               => $remaining_sale_detail_balance,
+                            ]);
+                        }
+                    }
+                }
+
                 foreach($_SESSION['cart']['sales'] as $cs) {
                     if($cs['balance_due'] > 0) {
                         if($remaining_payment >= $cs['balance_due'])
@@ -315,6 +608,17 @@ class POSService extends Service
                         }
                     }
                 }
+
+                if($data['cart']->payment_method == 'efectivo')
+                    $this->cashReconciliationRepository->updateCashReconciliationCash([
+                        'uuid'                                          => $this->uuidStringtoBinary($_SESSION['cash_reconciliation']['id']),
+                        'cash'                                          => $payment_amount,
+                    ]);
+                else
+                    $this->cashReconciliationRepository->updateCashReconciliationOther([
+                        'uuid'                                          => $this->uuidStringtoBinary($_SESSION['cash_reconciliation']['id']),
+                        'amount'                                        => $payment_amount,
+                    ]);
                 $this->foliosRepository->updateConsecutive('pago', $year, $payment_consecutive);
                 $this->createEmptyCart();
                 $conn->commit();
@@ -355,6 +659,29 @@ class POSService extends Service
             if(!$found)
                 throw new RuntimeException("Las consultas agregadas no coinciden.");
         }
+        $products_balance = 0;
+        foreach($cart->products as $ps) {
+            $found = false;
+            foreach($_SESSION['cart']['products'] as $session_ps) {
+                if($session_ps['id'] == $ps->id) {
+                    if($session_ps['total'] != $ps->total)
+                        throw new RuntimeException("El monto de los productos no coincide.");
+                    $product_data = $this->productsRepository->getProductData([
+                        'uuid'                          => $this->uuidStringtoBinary($ps->id)
+                    ]);
+                    if($product_data['precio_total'] != $session_ps['unit_price'])
+                        throw new RuntimeException("Hubo cambios en los costos del producto ".$session_ps['name'].", inicia la venta de nuevo.");
+                    if(round($product_data['precio_total'] * $session_ps['qty'], 2) != $session_ps['total'])
+                        throw new RuntimeException("Ocurrio un error al validar el costo del producto ".$product_data['name'].".");
+                    $products_balance += $session_ps['total'];
+                    $found = true;
+                }
+            }
+            if(!$found)
+                throw new RuntimeException("Los productos agregados no coinciden.");
+        }
+        if($cart->payment_amount < $products_balance) 
+            throw new RuntimeException("Es necesario que el pago cubra el monto de los productos agregados");
         return true;
     }
 }

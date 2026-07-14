@@ -20,6 +20,7 @@ class SalesRepository
             SELECT
                 v.id,
                 v.uuid,
+                v.folio,
                 CASE WHEN p.id IS NOT NULL
                     THEN TRIM(
                                 CONCAT(
@@ -42,6 +43,10 @@ class SalesRepository
                 v.descuento,
                 v.pagado,
                 v.adeudo,
+                r.nombre registro,
+                ve.id estatus_id,
+                ve.codigo estatus_codigo,
+                ve.estatus,
                 COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '') f_venta,
                 COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
                 COALESCE(DATE_FORMAT(p.f_ultima_visita, '%d/%m/%Y %r'), '') f_ultima_visita
@@ -50,12 +55,26 @@ class SalesRepository
                     ON v.paciente = p.id
                 LEFT JOIN clientes c
                     ON v.cliente = c.id
+                LEFT JOIN ventas_estatus ve
+                    ON v.estatus = ve.id
+                INNER JOIN usuarios r
+                    ON v.registro = r.id
             WHERE 1 = 1 
         ";
 
         $params = [];
 
-        $fields = ['p.clave', 'p.nombre', 'p.paterno', 'p.materno', 'c.clave', 'c.nombre', 'c.paterno', 'c.materno'];
+        $fields = ['v.folio',
+                    'p.nombre',
+                    'p.paterno',
+                    'p.materno',
+                    "CONCAT(p.nombre, ' ', p.paterno, ' ', p.materno)",
+                    'c.clave',
+                    'c.nombre',
+                    'c.paterno',
+                    'c.materno',
+                    "CONCAT(c.nombre, ' ', c.paterno, ' ', c.materno)",
+                    "COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '')"];
 
         $conditions = [];
         $params = [];
@@ -73,7 +92,7 @@ class SalesRepository
                 AND v.estatus = :status";
 
         $sql .= "
-            ORDER BY nombre ASC
+            ORDER BY v.folio ASC
             LIMIT :limit OFFSET :offset
         ";
 
@@ -220,6 +239,138 @@ class SalesRepository
         return $this->db->lastInsertId();
     }
 
+    public function registerSale(array $data) {
+        $sql = "
+            INSERT INTO ventas (
+                uuid,
+                folio,
+                consecutivo,
+                consulta,
+                cita,
+                cliente,
+                paciente,
+                subtotal,
+                impuestos,
+                total,
+                descuento,
+                pagado,
+                adeudo,
+                estatus,
+                observaciones,
+                registro,
+                f_venta,
+                f_registro
+            )
+            VALUES (
+                :uuid,
+                :folio,
+                :consecutive,
+                NULL,
+                NULL,
+                :client,
+                :patient,
+                :subtotal,
+                :taxes,
+                :total,
+                :discount,
+                :paid,
+                :balance_due,
+                :status,
+                :observations,
+                :uid,
+                NOW(),
+                NOW()
+            )
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':folio', $data['folio'], PDO::PARAM_STR);
+        $stmt->bindValue(':consecutive', $data['consecutive'], PDO::PARAM_INT);
+        $stmt->bindValue(':client', $data['client'], PDO::PARAM_INT);
+        $stmt->bindValue(':patient', $data['patient'], PDO::PARAM_INT);
+        $stmt->bindValue(':subtotal', $data['subtotal'], PDO::PARAM_STR);
+        $stmt->bindValue(':taxes', $data['taxes'], PDO::PARAM_STR);
+        $stmt->bindValue(':total', $data['total'], PDO::PARAM_STR);
+        $stmt->bindValue(':discount', $data['discount'], PDO::PARAM_STR);
+        $stmt->bindValue(':paid', $data['paid'], PDO::PARAM_STR);
+        $stmt->bindValue(':balance_due', $data['balance_due'], PDO::PARAM_STR);
+        $stmt->bindValue(':status', $data['status'], PDO::PARAM_INT);
+        $stmt->bindValue(':observations', $data['observations'], PDO::PARAM_STR);
+        $stmt->bindValue(':uid', $data['uid'], PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        if ($stmt->rowCount() === 0) {
+            return false;
+        }
+
+        return $this->db->lastInsertId();
+    }
+    
+    public function registerSaleProductDetails(array $data) {
+        $sql = "
+            INSERT INTO ventas_detalles (
+                uuid,
+                venta,
+                servicio,
+                producto,
+                descripcion,
+                cantidad,
+                precio_base,
+                subtotal,
+                impuestos,
+                total,
+                descuento,
+                pagado,
+                adeudo,
+                f_registro,
+                f_actualizacion
+            )
+            VALUES (
+                :uuid,
+                :sale,
+                NULL,
+                :product,
+                :description,
+                :quantity,
+                :unit_price,
+                :subtotal,
+                :taxes,
+                :total,
+                :discount,
+                :paid,
+                :balance_due,
+                NOW(),
+                NOW()
+            )
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sale', $data['sale'], PDO::PARAM_INT);
+        $stmt->bindValue(':product', $data['product'], PDO::PARAM_INT);
+        $stmt->bindValue(':description', $data['description'], PDO::PARAM_STR);
+        $stmt->bindValue(':quantity', $data['quantity'], PDO::PARAM_INT);
+        $stmt->bindValue(':unit_price', $data['unit_price'], PDO::PARAM_STR);
+        $stmt->bindValue(':subtotal', $data['subtotal'], PDO::PARAM_STR);
+        $stmt->bindValue(':taxes', $data['taxes'], PDO::PARAM_STR);
+        $stmt->bindValue(':total', $data['total'], PDO::PARAM_STR);
+        $stmt->bindValue(':discount', $data['discount'], PDO::PARAM_STR);
+        $stmt->bindValue(':paid', $data['paid'], PDO::PARAM_STR);
+        $stmt->bindValue(':balance_due', $data['balance_due'], PDO::PARAM_STR);
+
+        $stmt->execute();
+
+        if ($stmt->rowCount() === 0) {
+            return false;
+        }
+
+        return $this->db->lastInsertId();
+    }
+
     public function getSaleData($uuid) {
         $stmt = $this->db->prepare("
             SELECT v.id,
@@ -247,12 +398,20 @@ class SalesRepository
                 v.descuento,
                 v.pagado,
                 v.adeudo,
-                v.observaciones
+                ve.id estatus_id,
+                ve.codigo estatus_codigo,
+                ve.estatus,
+                v.observaciones,
+                COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '') f_venta,
+                COALESCE(DATE_FORMAT(v.f_registro, '%d/%m/%Y %r'), '') f_registro,
+                COALESCE(DATE_FORMAT(v.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
             FROM ventas v
                 LEFT JOIN clientes cl
                     ON v.cliente = cl.id
                 LEFT JOIN pacientes p
                     ON v.paciente = p.id
+                LEFT JOIN ventas_estatus ve
+                    ON v.estatus = ve.id
                 INNER JOIN usuarios u
                     ON v.registro = u.id
             WHERE v.uuid = :uuid

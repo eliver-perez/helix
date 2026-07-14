@@ -167,7 +167,7 @@ class AppointmentsService extends Service
             foreach($data as $d) {
                 array_push($appointments, array(
                     'id' => $this->uuidBinaryToString($d['uuid']),
-                    'title' => $d['paciente'] . ' - ' . $d['asunto'],
+                    'title' => $d['paciente'],
                     'start' => $d['fecha'].'T'.$this->minutesToTime($d['h_inicio']).':00',
                     'end' => $d['fecha'].'T'.$this->minutesToTime($d['h_fin']).':00',
                     'className' => $d['classname'] ?? 'primary',

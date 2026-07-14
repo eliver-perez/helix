@@ -96,4 +96,37 @@ class SalesController extends Controller
             ], 500);
         }
     }
+
+    public function show(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+
+            $sale = $service->getSale([
+                'uuid'                      => $id,
+                'uid'                       => $currentUserId,
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Datos de Venta.',
+                'data' => $sale
+            ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

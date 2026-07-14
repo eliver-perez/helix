@@ -12,6 +12,7 @@ use App\Core\Database;
 use App\Repositories\CashReconciliationRepository;
 use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
+use App\Repositories\PaymentsRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\CashReconciliationService;
 use InvalidArgumentException;
@@ -30,9 +31,14 @@ class CashReconciliationController extends Controller
         $cashReconciliationRepository = new CashReconciliationRepository($conn);
         $cashReconciliationStatusRepository = new CashReconciliationStatusRepository($conn);
         $cashRegisterRepository = new CashRegisterRepository($conn);
+        $paymentsRepository = new PaymentsRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
 
-        return new CashReconciliationService($cashReconciliationRepository, $cashReconciliationStatusRepository, $cashRegisterRepository, $settingsRepository);
+        return new CashReconciliationService($cashReconciliationRepository,
+                                            $cashReconciliationStatusRepository,
+                                            $cashRegisterRepository,
+                                            $paymentsRepository,
+                                            $settingsRepository);
     }
 
     private function getRepository(): CashReconciliationRepository {
@@ -56,14 +62,71 @@ class CashReconciliationController extends Controller
 
             $service = $this->getService();
 
-            $cash_reconciliations = $service->getAll();
+            $search = trim((string)$this->request->query('search', ''));
+
+            $limit = (int)$this->request->query('limit', 10);
+            $offset = (int)$this->request->query('offset', 0);
+
+            $limit = max(1, min($limit, 50));
+            $offset = max(0, $offset);
+
+            $data = $service->getAll([
+                'search'                => $search !== '' ? $search : null,
+                'limit'                 => $limit,
+                'offset'                => $offset,
+                'uid'                   => $currentUserId,
+            ]);
 
             return $response->json([
                     'success' => true,
                     'data' => [
-                        'cash_reconciliations' => $cash_reconciliations
+                        'cash_reconciliations' => $data
                     ]
                 ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function show(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+
+            $search = trim((string)$this->request->query('search', ''));
+
+            $limit = (int)$this->request->query('limit', 10);
+            $offset = (int)$this->request->query('offset', 0);
+
+            $limit = max(1, min($limit, 50));
+            $offset = max(0, $offset);
+
+            $cash_reconciliation = $service->getCashReconciliation([
+                'uuid'                      => $id,
+                'search'                    => $search !== '' ? $search : null,
+                'limit'                     => $limit,
+                'offset'                    => $offset,
+                'uid'                       => $currentUserId,
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Datos de Corte.',
+                'data' => $cash_reconciliation
+            ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
                 'success' => false,
@@ -113,6 +176,43 @@ class CashReconciliationController extends Controller
         }
     }
 
+    public function close(Request $request, Response $response) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $service = $this->getService();
+
+            $cash_reconciliation = $service->close([
+                'id'                        => $request->input('id'),
+                'closing_amount'            => $request->input('closing_amount'),
+                'observations'              => $request->input('observations'),
+                'uid'                       => $currentUserId,
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Corte cerrado con éxito.',
+                'data' => [
+                    'cash_reconciliation_id' => $cash_reconciliation
+                ]
+            ], 201);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function activeCashReconciliation() {
         try {
             $currentUserId = Auth::id();
@@ -134,6 +234,33 @@ class CashReconciliationController extends Controller
                     'opened_date'                           => $data['opened_date'] ?? ''
                 ]
             ]);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function cashReconciliationClosingData(Request $request, Response $response) {
+        try {
+            $currentUserId = Auth::id();
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $service = $this->getService();
+            $data = $service->cashReconciliationClosingData($currentUserId);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Datos de Corte.',
+                'data' => $data
+            ], 201);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return json_encode([
                 'success' => false,

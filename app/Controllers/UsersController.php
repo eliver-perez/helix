@@ -42,28 +42,37 @@ class UsersController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
-            $repository = $this->getRepository();
+            $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
+            
+            $limit = (int)$this->request->query('limit', 10);
+            $offset = (int)$this->request->query('offset', 0);
 
-            $data = $repository->getAll($search !== '' ? $search : null);
+            $limit = max(1, min($limit, 50));
+            $offset = max(0, $offset);
+
+            $data = $service->getAll($search !== '' ? $search : null,
+                $limit,
+                $offset
+            );
 
             return $response->json([
-                    'status' => 'OK',
+                    'success' => true,
                     'data' => [
                         'users' => $data
                     ]
                 ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
-                'message' => 'No fue posible obtener los usuarios.'
-                // 'message' => $e->getMessage()
+                'success' => false,
+                // 'message' => 'No fue posible obtener los usuarios.'
+                'message' => $e->getMessage()
             ], 500);
         }
     }

@@ -9,26 +9,52 @@
 
     require_once __DIR__.'/../layout/title.php';
     require_once __DIR__.'/modal_shifts.php';
+    require_once __DIR__.'/modal_end_shift.php';
     require_once __DIR__.'/modal_clients.php';
     require_once __DIR__.'/modal_sales.php';
     require_once __DIR__.'/modal_products.php';
 ?>
 
-<div class="flex flex-row gap-[5px] -mt-3 mb-2">
+<div class="flex flex-row gap-[5px] -mt-3 mb-2" id="sector-top-buttons">
     <?php if(!isset($cashReconciliation->data->id) || $cashReconciliation->data->id == '') { ?>
-        <button type="button" id="btn-shift-modal" class="group text-[13px] border-primary border-1 font-semibold text-primary btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-primary transition duration-300" data-te-ripple-init="" data-te-ripple-color="light">
+        <button type="button"
+                id="btn-shift-modal"
+                class="group text-[13px] border-primary border-1 font-semibold text-primary btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-primary transition duration-300"
+                data-te-ripple-init=""
+                data-te-ripple-color="light">
             Iniciar Corte
         </button>
     <?php } ?>
-    <button type="button" id="btn-sales-modal" class="group text-[13px] border-primary border-1 font-semibold text-primary btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-primary transition duration-300" data-te-ripple-init="" data-te-ripple-color="light">
+    <button type="button"
+            id="btn-sales-modal"
+            class="group text-[13px] border-primary border-1 font-semibold text-primary btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-primary transition duration-300"
+            data-te-ripple-init=""
+            data-te-ripple-color="light">
         Buscar Pendientes
     </button>
-    <button type="button" id="btn-products-modal" class="group text-[13px] border-warning border-1 font-semibold text-warning btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-warning transition duration-300" data-te-ripple-init="" data-te-ripple-color="light">
+    <button type="button"
+            id="btn-products-modal"
+            class="group text-[13px] border-warning border-1 font-semibold text-warning btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-warning transition duration-300"
+            data-te-ripple-init=""
+            data-te-ripple-color="light">
         Agregar Producto
     </button>
-    <button type="button" id="btn-empty-cart" class="group text-[13px] border-danger border-1 font-semibold text-danger btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-danger transition duration-300" data-te-ripple-init="" data-te-ripple-color="light">
+    <button type="button"
+            id="btn-empty-cart"
+            class="group text-[13px] border-danger border-1 font-semibold text-danger btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-danger transition duration-300"
+            data-te-ripple-init=""
+            data-te-ripple-color="light">
         Vaciar
     </button>
+    <?php if(isset($cashReconciliation->data->id) && $cashReconciliation->data->id != '') { ?>
+        <button type="button"
+                id="btn-end-shift-modal"
+                class="group text-[13px] border-primary border-1 font-semibold text-primary btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-primary transition duration-300"
+                data-te-ripple-init=""
+                data-te-ripple-color="light">
+            Cerrar Corte
+        </button>
+    <?php } ?>
 </div>
 
 <div class="bg-white dark:bg-box-dark rounded-10 px-[30px] pt-0 minh-70 pb-[30px]">

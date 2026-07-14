@@ -15,47 +15,45 @@ class PaymentsRepository
         return $this->db;
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0, int $status = 0): array {
+    public function getAll(array $data): array {
         $sql = "
             SELECT
-                v.id,
-                v.uuid,
-                CASE WHEN p.id IS NOT NULL
+                p.id,
+                p.uuid,
+                p.folio,
+                p.consecutivo,
+                CASE WHEN c.id IS NOT NULL
                     THEN TRIM(
-                                CONCAT(
-                                    p.nombre, ' ',
-                                    COALESCE(p.paterno, ''), ' ',
-                                    COALESCE(p.materno, '')
-                                )
-                            )
-                    ELSE TRIM(
                                 CONCAT(
                                     c.nombre, ' ',
                                     COALESCE(c.paterno, ''), ' ',
                                     COALESCE(c.materno, '')
                                 )
                             )
-                END nombre,
-                v.subtotal,
-                v.impuestos,
-                v.total,
-                v.descuento,
-                v.pagado,
-                v.adeudo,
-                COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '') f_venta,
+                    ELSE 'Publico en General'
+                END cliente,
+                mp.metodo metodo_pago,
+                p.monto_pago,
+                r.nombre registro,
+                p.estatus,
+                COALESCE(DATE_FORMAT(p.f_pago, '%d/%m/%Y %r'), '') f_pago,
                 COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(p.f_ultima_visita, '%d/%m/%Y %r'), '') f_ultima_visita
-            FROM ventas v
-                LEFT JOIN pacientes p
-                    ON v.paciente = p.id
+                COALESCE(DATE_FORMAT(p.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+            FROM pagos p
                 LEFT JOIN clientes c
-                    ON v.cliente = c.id
-            WHERE 1 = 1 
+                    ON p.cliente = c.id
+                LEFT JOIN metodos_pago mp
+                    ON p.metodo_pago = mp.id
+                LEFT JOIN usuarios r
+                    ON p.registro = r.id
+                INNER JOIN cortes
+                    ON p.corte = cortes.id
+            WHERE 1=1
         ";
 
         $params = [];
 
-        $fields = ['p.clave', 'p.nombre', 'p.paterno', 'p.materno', 'c.clave', 'c.nombre', 'c.paterno', 'c.materno'];
+        $fields = ['p.folio', 'mp.metodo', 'r.nombre', 'c.nombre', 'c.paterno', 'c.materno'];
 
         $conditions = [];
         $params = [];
@@ -63,17 +61,17 @@ class PaymentsRepository
         foreach ($fields as $i => $field) {
             $param = "search_$i";
             $conditions[] = "$field LIKE :$param";
-            $params[$param] = '%' . $search . '%';
+            $params[$param] = '%' . $data['search'] . '%';
         }
 
         $sql .= " AND (" . implode(' OR ', $conditions) . ")";
 
-        if($status != 0)
+        if($data['status'] != 0)
             $sql .= "
-                AND v.estatus = :status";
+                AND p.estatus = :status";
 
         $sql .= "
-            ORDER BY nombre ASC
+            ORDER BY p.f_pago DESC
             LIMIT :limit OFFSET :offset
         ";
 
@@ -83,10 +81,230 @@ class PaymentsRepository
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
 
-        if($status != 0)
-            $stmt->bindValue(':status', $status, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        if($data['status'] != 0)
+            $stmt->bindValue(':status', $data['status'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getPayment(array $data): array {
+        $sql = "
+            SELECT
+                p.id,
+                p.uuid,
+                p.folio,
+                cortes.folio folio_corte,
+                p.consecutivo,
+                CASE WHEN c.id IS NOT NULL
+                    THEN TRIM(
+                                CONCAT(
+                                    c.nombre, ' ',
+                                    COALESCE(c.paterno, ''), ' ',
+                                    COALESCE(c.materno, '')
+                                )
+                            )
+                    ELSE 'Publico en General'
+                END cliente,
+                mp.metodo metodo_pago,
+                p.monto_pago,
+                r.nombre registro,
+                p.estatus,
+                COALESCE(DATE_FORMAT(p.f_pago, '%d/%m/%Y %r'), '') f_pago,
+                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
+                COALESCE(DATE_FORMAT(p.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+            FROM pagos p
+                LEFT JOIN clientes c
+                    ON p.cliente = c.id
+                LEFT JOIN metodos_pago mp
+                    ON p.metodo_pago = mp.id
+                LEFT JOIN usuarios r
+                    ON p.registro = r.id
+                INNER JOIN cortes
+                    ON p.corte = cortes.id
+            WHERE p.uuid = :uuid
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getPaymentDetails(array $data): array {
+        $sql = "
+            SELECT p.id,
+                    pvd.uuid,
+                    CASE WHEN vd.producto IS NOT NULL
+                        THEN 'Producto'
+                        ELSE 'Procedimiento'
+                    END tipo,
+                    v.folio folio_venta,
+                    vd.descripcion,
+                    vd.cantidad,
+                    vd.precio_base,
+                    vd.subtotal,
+                    vd.descuento,
+                    vd.impuestos,
+                    vd.total,
+                    vd.pagado,
+                    vd.adeudo,
+                    pvd.adeudo_anterior,
+                    pvd.monto_pago,
+                    pvd.adeudo_actual
+                    FROM pagos_ventas_detalles pvd
+                        INNER JOIN pagos p
+                            ON pvd.pago = p.id
+                        INNER JOIN ventas v
+                            ON pvd.venta = v.id
+                        INNER JOIN ventas_detalles vd
+                            ON pvd.venta_detalle = vd.id
+                    WHERE p.uuid = :uuid
+                    ORDER BY v.folio
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function getSalesByPayment(array $data): array {
+        $sql = "
+            SELECT v.id,
+                    v.uuid,
+                    v.folio,
+                    CASE WHEN clientes.id IS NOT NULL
+                        THEN TRIM(
+                                    CONCAT(
+                                        clientes.nombre, ' ',
+                                        COALESCE(clientes.paterno, ''), ' ',
+                                        COALESCE(clientes.materno, '')
+                                    )
+                                )
+                        ELSE 'Publico en General'
+                    END cliente,
+                    CASE WHEN pacientes.id IS NOT NULL
+                        THEN TRIM(
+                                    CONCAT(
+                                        pacientes.nombre, ' ',
+                                        COALESCE(pacientes.paterno, ''), ' ',
+                                        COALESCE(pacientes.materno, '')
+                                    )
+                                )
+                        ELSE ''
+                    END paciente,
+                    v.subtotal,
+                    v.impuestos,
+                    v.total,
+                    v.descuento,
+                    v.pagado,
+                    v.adeudo,
+                    pv.adeudo_anterior,
+                    pv.monto_pago,
+                    pv.adeudo_actual,
+                    ve.estatus,
+                    r.nombre registro,
+                    COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '') f_venta,
+                    COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
+                    COALESCE(DATE_FORMAT(p.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                    FROM pagos p
+                        INNER JOIN pagos_ventas pv
+                            ON pv.pago = p.id
+                        INNER JOIN ventas v
+                            ON pv.venta = v.id
+                        LEFT JOIN clientes
+                            ON v.cliente = clientes.id
+                        LEFT JOIN pacientes
+                            ON v.paciente = pacientes.id
+                        LEFT JOIN ventas_estatus ve
+                            ON v.estatus = ve.id
+                        LEFT JOIN usuarios r
+                            ON v.registro = r.id
+                        LEFT JOIN consultas
+                            ON v.consulta = consultas.id
+                        LEFT JOIN citas
+                            ON v.cita = citas.id
+                    WHERE p.uuid = :uuid
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getCashReconciliationPayments(array $data): array {
+        $sql = "
+            SELECT
+                p.id,
+                p.uuid,
+                p.folio,
+                p.consecutivo,
+                CASE WHEN c.id IS NOT NULL
+                    THEN TRIM(
+                                CONCAT(
+                                    c.nombre, ' ',
+                                    COALESCE(c.paterno, ''), ' ',
+                                    COALESCE(c.materno, '')
+                                )
+                            )
+                    ELSE 'Publico en General'
+                END cliente,
+                mp.metodo metodo_pago,
+                p.monto_pago,
+                r.nombre registro,
+                p.estatus,
+                COALESCE(DATE_FORMAT(p.f_pago, '%d/%m/%Y %r'), '') f_pago,
+                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
+                COALESCE(DATE_FORMAT(p.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+            FROM pagos p
+                LEFT JOIN clientes c
+                    ON p.cliente = c.id
+                LEFT JOIN metodos_pago mp
+                    ON p.metodo_pago = mp.id
+                LEFT JOIN usuarios r
+                    ON p.registro = r.id
+                INNER JOIN cortes
+                    ON p.corte = cortes.id
+            WHERE cortes.uuid = :uuid
+        ";
+
+        $params = [];
+
+        $fields = ['p.folio', 'mp.metodo', 'r.nombre', 'c.nombre', 'c.paterno', 'c.materno'];
+
+        $conditions = [];
+        $params = [];
+
+        foreach ($fields as $i => $field) {
+            $param = "search_$i";
+            $conditions[] = "$field LIKE :$param";
+            $params[$param] = '%' . $data['search'] . '%';
+        }
+
+        $sql .= " AND (" . implode(' OR ', $conditions) . ")";
+
+        $sql .= "
+            ORDER BY p.f_pago DESC
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
+        }
+
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
 
         $stmt->execute();
 

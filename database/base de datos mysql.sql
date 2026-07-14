@@ -286,6 +286,7 @@ CREATE TABLE personal_altas (
 CREATE TABLE usuarios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    email                           VARCHAR(150) DEFAULT NULL,
     nombre                          VARCHAR(120) DEFAULT NULL,
     usuario                         VARCHAR(30) NOT NULL UNIQUE,
     password_hash                   VARCHAR(255) NOT NULL,
@@ -294,6 +295,7 @@ CREATE TABLE usuarios (
     f_registro                      DATETIME NOT NULL,
     f_ultima_conexion               DATETIME DEFAULT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT UK_usuarios_email UNIQUE(email),
     CONSTRAINT FK_usuarios_tipo FOREIGN KEY(tipo_usuario) REFERENCES usuarios_tipos(id)
 );
 
@@ -387,10 +389,10 @@ INSERT INTO permisos(id, permiso, f_registro) VALUES('superadmin', 'Administrado
                                                     ('ajustes-modificar', 'Ajustes - Modificar ajustes de la plataforma.', NOW());
 
 CREATE TABLE permisos_usuarios (
+    uuid                            BINARY(16) NOT NULL UNIQUE,
     permiso                         VARCHAR(30) NOT NULL,
     usuario                         INT NOT NULL,
     empresa                         INT NOT NULL,
-    uuid                            BINARY(16) NOT NULL UNIQUE,
     valor                           SMALLINT NOT NULL DEFAULT 1,
     f_actualizacion                 DATETIME NOT NULL,
     CONSTRAINT FK_permisosusuarios_permiso FOREIGN KEY(permiso) REFERENCES permisos(id),
@@ -399,9 +401,9 @@ CREATE TABLE permisos_usuarios (
 );
 
 CREATE TABLE permisos_usuarios_tipo (
+    uuid                            BINARY(16) NOT NULL UNIQUE,
     permiso                         VARCHAR(30) NOT NULL,
     tipo                            SMALLINT NOT NULL,
-    uuid                            BINARY(16) NOT NULL UNIQUE,
     valor                           SMALLINT NOT NULL DEFAULT 1,
     f_actualizacion                 DATETIME NOT NULL,
     CONSTRAINT FK_permisosusuariostipo_permiso FOREIGN KEY(permiso) REFERENCES permisos(id),
@@ -970,7 +972,8 @@ INSERT INTO citas_formas(codigo, forma) VALUES('presencial', 'Presencial'),
                                                     ('telefonica', 'Teléfono'),
                                                     ('correo', 'E-Mail'),
                                                     ('whatsapp', 'WhatsApp'),
-                                                    ('agenda_digital', 'Agenda Digital');
+                                                    ('agenda_digital', 'Agenda Digital'),
+                                                    ('walk_in', 'Espontanea');
 
 CREATE TABLE citas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -1418,7 +1421,7 @@ CREATE TABLE servicios_consulta_modulos (
 
     f_registro                      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    UNIQUE KEY uq_servicio_modulo (servicio, modulo),
+    UNIQUE KEY UK_servicio_modulo (servicio, modulo),
     CONSTRAINT FK_scm_servicio FOREIGN KEY (servicio) REFERENCES servicios(id),
     CONSTRAINT FK_scm_modulo FOREIGN KEY (modulo) REFERENCES consultas_modulos(id)
 );
@@ -2173,10 +2176,14 @@ CREATE TABLE perfil_impuestos_detalle (
     impuesto                        SMALLINT NOT NULL,
     tasa                            NUMERIC(8, 6) NOT NULL,
     vigente_desde                   DATETIME NOT NULL,
-    vigente_hasta                   DATETIME NOT NULL,
+    vigente_hasta                   DATETIME DEFAULT NULL,
     CONSTRAINT FK_perfilimpuestosdetalle_perfil FOREIGN KEY(perfil) REFERENCES perfil_impuestos(id),
     CONSTRAINT FK_perfilimpuestosdetalle_impuesto FOREIGN KEY(impuesto) REFERENCES impuestos(id)
 );
+
+INSERT INTO perfil_impuestos_detalle(perfil, impuesto, tasa, vigente_desde) VALUES(1, 1, 16, '2010-01-01'),
+                                                                                    (2, 1, 16, '2010-01-01'),
+                                                                                    (3, 1, 0, '2010-01-01');
 
 CREATE TABLE ordenes_compra_articulos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -2201,24 +2208,39 @@ CREATE TABLE ordenes_compra_articulos (
 
 CREATE TABLE productos_categoria (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
-    codigo                          VARCHAR(20) NOT NULL UNIQUE,
-    categoria                       VARCHAR(60) NOT NULL
+    empresa                         INT DEFAULT NULL,
+    categoria                       VARCHAR(60) NOT NULL,
+    sistema                         TINYINT NOT NULL DEFAULT 0,
+    activo                          TINYINT NOT NULL DEFAULT 1,
+    CONSTRAINT FK_productoscategoria_empresa FOREIGN KEY (empresa) REFERENCES empresas(id),
+    CONSTRAINT UK_productos_categoria UNIQUE (empresa, categoria)
 );
+
+INSERT INTO productos_categoria (categoria, sistema, activo) VALUES ('Medicamentos',         1, 1),
+                                                                    ('Material',             1, 1),
+                                                                    ('Instrumental',         1, 1),
+                                                                    ('Equipo',               1, 1),
+                                                                    ('Accesorios',           1, 1),
+                                                                    ('Otros',                1, 1);
 
 CREATE TABLE productos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    clave                           VARCHAR(12) NOT NULL UNIQUE,
-    codigo_barras                   VARCHAR(32) NOT NULL UNIQUE,
+    clave                           VARCHAR(12) DEFAULT NULL UNIQUE,
+    codigo_barras                   VARCHAR(32) DEFAULT NULL UNIQUE,
     nombre                          VARCHAR(100) NOT NULL,
     nombre_ticket                   VARCHAR(32) NOT NULL,
     categoria                       SMALLINT NOT NULL,
     descripcion                     VARCHAR(255) DEFAULT NULL,
     unidad                          VARCHAR(8) NOT NULL DEFAULT 1,
+    precio_base                     NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    porc_impuestos                  NUMERIC(6, 2) NOT NULL DEFAULT 0,
+    impuestos                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    precio_total                    NUMERIC(18, 2) NOT NULL DEFAULT 0,
     habilitado_venta                SMALLINT NOT NULL DEFAULT 1,
     registro                        INT NOT NULL,
-    f_registro                    DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT FK_productos_categoria FOREIGN KEY(categoria) REFERENCES productos_categoria(id),
     CONSTRAINT FK_productos_unidad FOREIGN KEY(unidad) REFERENCES unidades(id),
     CONSTRAINT FK_productos_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
@@ -2240,12 +2262,18 @@ CREATE TABLE productos_precios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     producto                        INT NOT NULL,
-    precio_base                     NUMERIC(18, 2) NOT NULL DEFAULT 0,
     perfil_impuesto                 SMALLINT NOT NULL,
+    precio_base                     NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    porc_impuestos                  NUMERIC(6, 2) NOT NULL DEFAULT 0,
+    impuestos                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    precio_total                    NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    registro                        INT NOT NULL,
+    fecha_registro                  DATETIME NOT NULL,
     vigente_desde                   DATETIME NOT NULL,
-    vigente_hasta                   DATETIME NOT NULL,
+    vigente_hasta                   DATETIME DEFAULT NULL,
     CONSTRAINT FK_productosprecios_producto FOREIGN KEY(producto) REFERENCES productos(id),
-    CONSTRAINT FK_productosprecios_perfilimpuesto FOREIGN KEY(perfil_impuesto) REFERENCES perfil_impuestos(id)
+    CONSTRAINT FK_productosprecios_perfilimpuesto FOREIGN KEY(perfil_impuesto) REFERENCES perfil_impuestos(id),
+    CONSTRAINT FK_productosprecios_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
 CREATE TABLE ventas_estatus (
@@ -2261,7 +2289,7 @@ INSERT INTO ventas_estatus(codigo, estatus) VALUES('pendiente', 'Pendiente'),
 CREATE TABLE ventas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    folio                           VARCHAR(15) NOT NULL UNIQUE,
+    folio                           VARCHAR(30) NOT NULL UNIQUE,
     consecutivo                     SMALLINT NOT NULL,
     consulta                        INT DEFAULT NULL,
     cita                            INT DEFAULT NULL,
@@ -2400,6 +2428,9 @@ INSERT INTO cortes_estatus(codigo, estatus) VALUES('open', 'Abierta'),
 CREATE TABLE cortes (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    ejercicio                       SMALLINT NOT NULL,
+    consecutivo                     INT NOT NULL,
+    folio                           VARCHAR(30) NOT NULL,
     caja                            SMALLINT NOT NULL,
     abierta_por                     INT NOT NULL,
     f_abierta                       DATETIME NOT NULL,
@@ -2409,14 +2440,18 @@ CREATE TABLE cortes (
     monto_cierre                    NUMERIC(18, 2) DEFAULT NULL,
     efectivo                        NUMERIC(18, 2) NOT NULL DEFAULT 0,
     otros_medios                    NUMERIC(18, 2) NOT NULL DEFAULT 0,
-    efectivo_esperado               NUMERIC(18, 2) DEFAULT NULL,
+    total_venta                     NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    efectivo_esperado               NUMERIC(18, 2) NOT NULL DEFAULT 0,
     retiros                         NUMERIC(18, 2) NOT NULL DEFAULT 0,
     depositos                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
-    diferencia                      NUMERIC(18, 2) DEFAULT NULL,
+    diferencia                      NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    cancelado                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
     estatus                         SMALLINT NOT NULL,
     observaciones                   VARCHAR(1024) DEFAULT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT UK_cortes_folio UNIQUE(folio),
+    CONSTRAINT UK_cortes_consecutivo UNIQUE(consecutivo, ejercicio),
     CONSTRAINT FK_cortes_caja FOREIGN KEY(caja) REFERENCES cajas(id),
     CONSTRAINT FK_cortes_abiertapor FOREIGN KEY(abierta_por) REFERENCES usuarios(id),
     CONSTRAINT FK_cortes_cerradapor FOREIGN KEY(cerrada_por) REFERENCES usuarios(id),
@@ -2458,7 +2493,7 @@ CREATE TABLE cortes_retiros (
 CREATE TABLE pagos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    folio                           VARCHAR(15) NOT NULL UNIQUE,
+    folio                           VARCHAR(30) NOT NULL UNIQUE,
     consecutivo                     SMALLINT NOT NULL DEFAULT 0,
     cliente                         INT DEFAULT NULL,
     corte                           INT NOT NULL,
@@ -2508,6 +2543,114 @@ CREATE TABLE pagos_ventas_detalles (
     CONSTRAINT FK_pagosventasdetalles_pago FOREIGN KEY(pago) REFERENCES pagos(id),
     CONSTRAINT FK_pagosventasdetalles_venta FOREIGN KEY(venta) REFERENCES ventas(id),
     CONSTRAINT FK_pagosventasdetalles_ventadetalle FOREIGN KEY(venta_detalle) REFERENCES ventas_detalles(id)
+);
+
+CREATE TABLE integraciones_whatsapp (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL,
+
+    empresa                         INT NOT NULL,
+    proveedor                       VARCHAR(30) NOT NULL,
+    nombre                          VARCHAR(80) NOT NULL DEFAULT 'WhatsApp principal',
+
+    configuracion                   JSON NOT NULL,
+    credenciales                    TEXT NOT NULL,
+
+    activo                          TINYINT NOT NULL DEFAULT 1,
+
+    ultima_prueba_at                DATETIME NULL,
+    ultima_prueba_exitosa           TINYINT NULL,
+    ultimo_error                    TEXT NULL,
+
+    registrado_por                  INT NOT NULL,
+    actualizado_por                 INT NULL,
+
+    f_registro                      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    f_actualizacion                 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY UK_integracioneswhatsapp_uuid (uuid),
+    UNIQUE KEY UK_integracioneswhatsapp_empresa (empresa),
+
+    KEY IDX_integracioneswhatsapp_proveedor (proveedor),
+
+    CONSTRAINT FK_integracioneswhatsapp_empresa FOREIGN KEY (empresa) REFERENCES empresas(id),
+    CONSTRAINT FK_integracioneswhatsapp_registrado_por FOREIGN KEY (registrado_por) REFERENCES usuarios(id),
+    CONSTRAINT FK_integracioneswhatsapp_actualizado_por FOREIGN KEY (actualizado_por) REFERENCES usuarios(id)
+);
+
+CREATE TABLE mensajes_whatsapp (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL,
+
+    empresa                         INT NOT NULL,
+    integracion                     INT NOT NULL,
+
+    proveedor                       VARCHAR(30) NOT NULL,
+    tipo                            VARCHAR(30) NOT NULL,
+
+    evento                          VARCHAR(60) NULL,
+    referencia_tipo                 VARCHAR(40) NULL,
+    referencia_id                   INT NULL,
+
+    destinatario                    VARCHAR(25) NOT NULL,
+
+    plantilla                       VARCHAR(120) NULL,
+    idioma                          VARCHAR(10) NULL,
+    contenido                       TEXT NULL,
+    parametros                      JSON NULL,
+
+    proveedor_mensaje_id            VARCHAR(255) NULL,
+
+    estatus                         VARCHAR(30) NOT NULL DEFAULT 'pendiente',
+
+    codigo_http                     SMALLINT NULL,
+    codigo_error                    VARCHAR(100) NULL,
+    error                           TEXT NULL,
+
+    solicitud                       JSON NULL,
+    respuesta                       JSON NULL,
+
+    intentos                        SMALLINT NOT NULL DEFAULT 1,
+    es_prueba                       TINYINT NOT NULL DEFAULT 0,
+
+    enviado_at                      DATETIME NULL,
+    entregado_at                    DATETIME NULL,
+    leido_at                        DATETIME NULL,
+    fallido_at                      DATETIME NULL,
+
+    registrado_por                  INT NULL,
+
+    f_registro                      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    f_actualizacion                 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY UK_mensajes_whatsapp_uuid (uuid),
+
+    UNIQUE KEY UK_mensajes_whatsapp_proveedor_id (
+        proveedor,
+        proveedor_mensaje_id
+    ),
+
+    KEY IDX_mensajes_whatsapp_empresa_estatus (
+        empresa,
+        estatus
+    ),
+
+    KEY IDX_mensajes_whatsapp_integracion (
+        integracion
+    ),
+
+    KEY IDX_mensajes_whatsapp_destinatario (
+        destinatario
+    ),
+
+    KEY IDX_mensajes_whatsapp_referencia (
+        referencia_tipo,
+        referencia_id
+    ),
+
+    CONSTRAINT FK_mensajes_whatsapp_empresa FOREIGN KEY (empresa) REFERENCES empresas(id),
+    CONSTRAINT FK_mensajes_whatsapp_integracion FOREIGN KEY (integracion) REFERENCES integraciones_whatsapp(id),
+    CONSTRAINT FK_mensajes_whatsapp_registrado_por FOREIGN KEY (registrado_por) REFERENCES usuarios(id)
 );
 
 

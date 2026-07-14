@@ -74,7 +74,7 @@ class PatientsRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getPatientId(string $uuid): ?int {
+    public function getPatientId($uuid): ?int {
         $stmt = $this->db->prepare("
             SELECT id
             FROM pacientes

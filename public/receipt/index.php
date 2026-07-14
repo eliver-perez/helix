@@ -9,9 +9,6 @@
 	$action = $segments[$index + 1] ?? null;
 	$id     = $segments[$index + 1] ?? null;
 
-	// die(var_dump($action));
-
-	// default
 	if (is_uuid($action)) {
 		$id = $action;
 		$view = APP_PATH . '/Views/receipt/index.php';
